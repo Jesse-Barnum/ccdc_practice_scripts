@@ -152,3 +152,4 @@ try {
 } catch {
     Write-Error "Could not retrieve ClamAV service status. Please check the Services application manually."
 }
+
