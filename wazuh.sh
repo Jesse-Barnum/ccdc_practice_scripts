@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# An interactive script to install and configure the Wazuh agent on a Linux system.
-# It prompts for the manager's IP, detects the package manager, adds the Wazuh
-# repository, and sets up the agent.
-
-# --- Function to print styled messages ---
 print_message() {
     echo "----------------------------------------"
     echo "$1"
