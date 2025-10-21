@@ -1,11 +1,11 @@
-# PowerShell Script to Interactively Install the Wazuh Agent on Windows
+# PowerShell Script to Interactively Install the Wazuh Agent on Windows from a Local File
 #
 # This script will:
 # 1. Ensure it is running with Administrator privileges (self-elevate).
-# 2. Prompt the user for the Wazuh Manager's IP address.
-# 3. Download the latest Wazuh agent MSI installer.
+# 2. Prompt the user for the path to the local Wazuh agent MSI file.
+# 3. Prompt the user for the Wazuh Manager's IP address.
 # 4. Install the agent silently, configured to connect to the provided manager IP.
-# 5. Start the Wazuh service and clean up the installer file.
+# 5. Start the Wazuh service.
 
 # --- 1. Self-Elevation: Check for Admin rights and re-launch if necessary ---
 function Start-Elevated {
@@ -19,12 +19,25 @@ function Start-Elevated {
 Start-Elevated
 
 # --- Script Header ---
-Write-Host "----------------------------------------" -ForegroundColor Green
-Write-Host " Wazuh Agent Interactive Installer" -ForegroundColor Green
-Write-Host "----------------------------------------" -ForegroundColor Green
+Write-Host "---------------------------------------------------" -ForegroundColor Green
+Write-Host " Wazuh Agent Interactive Installer (from Local File)" -ForegroundColor Green
+Write-Host "---------------------------------------------------" -ForegroundColor Green
 Write-Host ""
 
-# --- 2. Prompt for Wazuh Manager IP Address ---
+# --- 2. Prompt for Local MSI File Path ---
+$msiPath = ""
+while (-not $msiPath) {
+    $msiPath = Read-Host "Please enter the full path to the Wazuh agent .msi installer file (e.g., C:\Users\Admin\Downloads\wazuh-agent.msi)"
+    if (-not (Test-Path $msiPath -PathType Leaf)) {
+        Write-Warning "File not found at the specified path. Please check the path and try again."
+        $msiPath = "" # Reset variable to loop again
+    }
+}
+Write-Host "Using installer located at '$msiPath'." -ForegroundColor Cyan
+Write-Host ""
+
+
+# --- 3. Prompt for Wazuh Manager IP Address ---
 $wazuhManagerIp = ""
 while (-not $wazuhManagerIp) {
     $wazuhManagerIp = Read-Host "Please enter the Wazuh Manager IP address"
@@ -35,35 +48,13 @@ while (-not $wazuhManagerIp) {
 Write-Host "Configuration: Agent will report to manager at '$wazuhManagerIp'." -ForegroundColor Cyan
 Write-Host ""
 
-# --- 3. Download the Wazuh Agent ---
-try {
-    $wazuhUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-latest.msi"
-    $tempPath = "$env:TEMP\wazuh-agent.msi"
-    # Define a common browser User-Agent string to avoid 403 Forbidden errors.
-    $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
-    
-    # Force PowerShell to use TLS 1.2 for the connection. This is a common fix for download errors on some systems.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-
-    Write-Host "Downloading Wazuh agent from '$wazuhUrl'..." -ForegroundColor Yellow
-    # Add the -UserAgent parameter to the download command
-    Invoke-WebRequest -Uri $wazuhUrl -OutFile $tempPath -UserAgent $userAgent
-    
-    Write-Host "Download complete. Installer saved to '$tempPath'." -ForegroundColor Green
-    Write-Host ""
-}
-catch {
-    Write-Error "Failed to download the Wazuh agent. Please check your internet connection and the URL."
-    Write-Error $_.Exception.Message
-    exit 1
-}
 
 # --- 4. Install the Agent Silently ---
 try {
-    Write-Host "Installing the Wazuh agent. This may take a moment..." -ForegroundColor Yellow
+    Write-Host "Installing the Wazuh agent from the local file. This may take a moment..." -ForegroundColor Yellow
     # Construct the arguments for msiexec
     $msiArgs = @(
-        "/i", "`"$tempPath`"",   # Specify the installer path
+        "/i", "`"$msiPath`"",   # Specify the installer path
         "/qn",                   # Quiet, no UI
         "WAZUH_MANAGER=`"$wazuhManagerIp`"" # Pass the manager IP as a property
     )
@@ -95,15 +86,6 @@ catch {
     Write-Warning "Could not start the Wazuh service automatically. It may already be running or the installation failed."
     Write-Warning $_.Exception.Message
 }
-
-# --- 6. Clean Up ---
-try {
-    Write-Host "Cleaning up installer file..." -ForegroundColor Yellow
-    Remove-Item -Path $tempPath -Force -ErrorAction SilentlyContinue
-    Write-Host "Cleanup complete." -ForegroundColor Green
-    Write-Host ""
-}
-catch {}
 
 # --- Final Message ---
 Write-Host "----------------------------------------" -ForegroundColor Green
