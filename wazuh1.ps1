@@ -39,9 +39,12 @@ Write-Host ""
 try {
     $wazuhUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-latest.msi"
     $tempPath = "$env:TEMP\wazuh-agent.msi"
+    # Define a common browser User-Agent string to avoid 403 Forbidden errors.
+    $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
     
     Write-Host "Downloading Wazuh agent from '$wazuhUrl'..." -ForegroundColor Yellow
-    Invoke-WebRequest -Uri $wazuhUrl -OutFile $tempPath -UseBasicParsing
+    # Add the -UserAgent parameter to the download command
+    Invoke-WebRequest -Uri $wazuhUrl -OutFile $tempPath -UserAgent $userAgent
     
     Write-Host "Download complete. Installer saved to '$tempPath'." -ForegroundColor Green
     Write-Host ""
@@ -103,3 +106,4 @@ catch {}
 Write-Host "----------------------------------------" -ForegroundColor Green
 Write-Host " Wazuh Agent setup is complete!" -ForegroundColor Green
 Write-Host "----------------------------------------" -ForegroundColor Green
+
