@@ -42,6 +42,9 @@ try {
     # Define a common browser User-Agent string to avoid 403 Forbidden errors.
     $userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
     
+    # Force PowerShell to use TLS 1.2 for the connection. This is a common fix for download errors on some systems.
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+
     Write-Host "Downloading Wazuh agent from '$wazuhUrl'..." -ForegroundColor Yellow
     # Add the -UserAgent parameter to the download command
     Invoke-WebRequest -Uri $wazuhUrl -OutFile $tempPath -UserAgent $userAgent
