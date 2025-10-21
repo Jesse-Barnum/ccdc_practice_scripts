@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# A script to install and configure the Wazuh agent on a Linux system.
-# It detects the package manager, adds the Wazuh repository, and sets up the agent.
-
-# !!! IMPORTANT !!!
-# YOU MUST EDIT THIS VARIABLE WITH YOUR WAZUH MANAGER'S IP ADDRESS OR HOSTNAME.
-WAZUH_MANAGER_IP="YOUR_WAZUH_MANAGER_IP"
+# An interactive script to install and configure the Wazuh agent on a Linux system.
+# It prompts for the manager's IP, detects the package manager, adds the Wazuh
+# repository, and sets up the agent.
 
 # --- Function to print styled messages ---
 print_message() {
@@ -14,14 +11,17 @@ print_message() {
     echo "----------------------------------------"
 }
 
-# --- Check if the manager IP has been set ---
-if [ "$WAZUH_MANAGER_IP" == "YOUR_WAZUH_MANAGER_IP" ]; then
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "!!! ERROR: Please edit this script and set the               !!!"
-    echo "!!! WAZUH_MANAGER_IP variable before running.                !!!"
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    exit 1
-fi
+# --- Prompt for Wazuh Manager IP Address ---
+WAZUH_MANAGER_IP=""
+while [ -z "$WAZUH_MANAGER_IP" ]; do
+    read -p "Please enter the Wazuh Manager IP address: " WAZUH_MANAGER_IP
+    if [ -z "$WAZUH_MANAGER_IP" ]; then
+        echo "The IP address cannot be empty. Please try again."
+    fi
+done
+
+echo "Using '$WAZUH_MANAGER_IP' as the Wazuh Manager IP."
+echo ""
 
 # --- Main Installation Logic ---
 
