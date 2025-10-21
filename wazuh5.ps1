@@ -65,13 +65,19 @@ catch {
     exit 1
 }
 
-# --- 4. Install the Agent Silently ---
+# --- 4. Install the Agent Silently with Verbose Logging ---
 try {
     Write-Host "Installing the Wazuh agent. This may take a moment..." -ForegroundColor Yellow
+    
+    # Define a path for the installation log file.
+    $logPath = "$env:TEMP\wazuh_install_log.txt"
+    Write-Host "A detailed installation log will be saved to '$logPath'." -ForegroundColor Cyan
+
     $msiArgs = @(
         "/i", "`"$tempPath`"",
         "/qn",
-        "WAZUH_MANAGER=`"$wazuhManagerIp`""
+        "WAZUH_MANAGER=`"$wazuhManagerIp`"",
+        "/L*v", "`"$logPath`""  # Add verbose logging parameter
     )
 
     $installProcess = Start-Process msiexec.exe -ArgumentList $msiArgs -Wait -PassThru
@@ -85,6 +91,10 @@ try {
 }
 catch {
     Write-Error "An error occurred during installation."
+    $logPath = "$env:TEMP\wazuh_install_log.txt"
+    if (Test-Path $logPath) {
+        Write-Error "Please check the detailed installation log for more information: $logPath"
+    }
     Write-Error $_.Exception.Message
     exit 1
 }
