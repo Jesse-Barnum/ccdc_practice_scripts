@@ -8,13 +8,10 @@
 # 5. Dynamically SEARCH the system to find the *actual* installation path.
 # 6. Use that found path to configure ClamAV, update definitions, and start services.
 #
-# ----- V5 UPDATE -----
-# - Removed all hard-coded path guesses.
-# - The script now installs the package and then uses 'Get-Command'
-#   to dynamically find the 'clamd.exe' executable.
-# - This "search-and-find" method is robust and should work
-#   regardless of where choco/winget installs the files.
-# - Fixed a typo from V4 ('$configGrid' is now '$configDir').
+# ----- V5.1 RE-ISSUE -----
+# - This script uses a robust "search-and-find" method.
+# - It does NOT guess the installation path. It finds the executable
+#   after installation and uses that path.
 # ---------------------
 
 # --- 1. Self-Elevation: Check for Admin rights and re-launch if necessary ---
@@ -30,7 +27,7 @@ Start-Elevated
 
 # --- Script Header ---
 Write-Host "----------------------------------------" -ForegroundColor Green
-Write-Host " ClamAV Installation Process (V5 - Dynamic Path)" -ForegroundColor Green
+Write-Host " ClamAV Installation Process (V5.1 - Dynamic Path)" -ForegroundColor Green
 Write-Host "----------------------------------------" -ForegroundColor Green
 Write-Host ""
 
