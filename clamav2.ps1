@@ -6,6 +6,11 @@
 # 3. If neither is found, it will AUTOMATICALLY install Chocolatey.
 # 4. Use the available package manager to install ClamAV.
 # 5. Configure ClamAV, update definitions, and start services.
+#
+# ----- V3 UPDATE -----
+# - Corrected installation path. The Cisco package installs to 'ClamAV-Cisco'.
+# - All post-install paths have been updated to match.
+# ---------------------
 
 # --- 1. Self-Elevation: Check for Admin rights and re-launch if necessary ---
 function Start-Elevated {
@@ -66,6 +71,9 @@ else {
 Write-Host ""
 
 # --- 3. Install ClamAV using the determined package manager ---
+# THE CORRECT DIRECTORY PATH:
+$clamDir = "C:\Program Files\ClamAV-Cisco"
+
 Write-Host "Starting ClamAV installation using $packageManager..." -ForegroundColor Yellow
 try {
     if ($packageManager -eq "winget") {
@@ -75,8 +83,7 @@ try {
         Start-Process "choco" -ArgumentList "install clamav -y --force" -Wait
     }
     
-    # Verify installation by checking the directory
-    $clamDir = "C:\Program Files\ClamAV"
+    # Verify installation by checking the CORRECT directory
     if (-not (Test-Path $clamDir)) {
         throw "Installation command ran, but ClamAV directory was not found at '$clamDir'."
     }
@@ -92,19 +99,28 @@ Write-Host ""
 # --- 4. Post-Installation Configuration ---
 Write-Host "Running post-installation configuration..." -ForegroundColor Yellow
 try {
-    # ClamAV's config files are in a different location when installed via choco/winget
-    $configDir = "C:\Program Files\ClamAV"
+    # Use the CORRECT config directory path
+    $configDir = $clamDir
+    
+    # Create the database directory
+    $dbDir = "$configDir\database"
+    if (-not (Test-Path $dbDir)) {
+        New-Item -Path $dbDir -ItemType Directory
+    }
     
     # Rename/copy example config files
     Copy-Item "$configDir\conf_examples\freshclam.conf.sample" "$configDir\freshclam.conf" -Force
     Copy-Item "$configDir\conf_examples\clamd.conf.sample" "$configDir\clamd.conf" -Force
     
     # Comment out the "Example" line in both config files
-    (Get-Content "$configDir\freshclam.conf") -replace "Example", "# Example" | Set-Content "$configDir\freshclam.conf"
-    (Get-Content "$configDir\clamd.conf") -replace "Example", "# Example" | Set-Content "$configDir\clamd.conf"
+    (Get-Content "$configDir\freshclam.conf") -replace "Example", "# Example" | Set-Content "$configGrid\freshclam.conf"
+    (Get-Content "$configGrid\clamd.conf") -replace "Example", "# Example" | Set-Content "$configGrid\clamd.conf"
     
     # Add a line to clamd.conf to specify the database directory
-    Add-Content "$configDir\clamd.conf" "`nDatabaseDirectory $configDir\database"
+    Add-Content "$configGrid\clamd.conf" "`nDatabaseDirectory $dbDir"
+    
+    # Add a line to freshclam.conf to specify the database directory
+    Add-Content "$configGrid\freshclam.conf" "`nDatabaseDirectory $dbDir"
     
     Write-Host "Configuration files created." -ForegroundColor Green
 }
@@ -119,6 +135,7 @@ Write-Host ""
 Write-Host "Updating virus definitions with freshclam..." -ForegroundColor Yellow
 try {
     $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+    # Use the CORRECT executable path
     $processInfo.FileName = "$configDir\freshclam.exe"
     $processInfo.RedirectStandardOutput = $true
     $processInfo.RedirectStandardError = $true
@@ -146,6 +163,7 @@ Write-Host ""
 # --- 6. Install, Register, and Start Services ---
 Write-Host "Registering and starting ClamAV services..." -ForegroundColor Yellow
 try {
+    # Use the CORRECT executable paths
     # Install clamd as a service
     Start-Process "$configDir\clamd.exe" -ArgumentList "--install" -Wait
     # Install freshclam as a service
