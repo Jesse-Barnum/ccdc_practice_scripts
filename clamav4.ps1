@@ -5,13 +5,16 @@
 # 2. Check for 'winget' or 'choco' package managers.
 # 3. If neither is found, it will AUTOMATICALLY install Chocolatey.
 # 4. Use the available package manager to install the 'clamav-cisco' package.
-# 5. Configure ClamAV, update definitions, and start services.
+# 5. Dynamically SEARCH the system to find the *actual* installation path.
+# 6. Use that found path to configure ClamAV, update definitions, and start services.
 #
-# ----- V4 UPDATE -----
-# - Changed 'choco install clamav' to 'choco install clamav-cisco'.
-# - This unifies the installation, ensuring that both winget and choco
-#   install the *same package* to the *same directory*
-#   (C:\Program Files\ClamAV-Cisco), which fixes the path errors.
+# ----- V5 UPDATE -----
+# - Removed all hard-coded path guesses.
+# - The script now installs the package and then uses 'Get-Command'
+#   to dynamically find the 'clamd.exe' executable.
+# - This "search-and-find" method is robust and should work
+#   regardless of where choco/winget installs the files.
+# - Fixed a typo from V4 ('$configGrid' is now '$configDir').
 # ---------------------
 
 # --- 1. Self-Elevation: Check for Admin rights and re-launch if necessary ---
@@ -27,7 +30,7 @@ Start-Elevated
 
 # --- Script Header ---
 Write-Host "----------------------------------------" -ForegroundColor Green
-Write-Host " ClamAV Installation Process..." -ForegroundColor Green
+Write-Host " ClamAV Installation Process (V5 - Dynamic Path)" -ForegroundColor Green
 Write-Host "----------------------------------------" -ForegroundColor Green
 Write-Host ""
 
@@ -46,15 +49,10 @@ else {
     Write-Host "Attempting to install Chocolatey... This may take a few minutes." -ForegroundColor Yellow
     
     try {
-        # Set execution policy to allow installation script to run
         Set-ExecutionPolicy Bypass -Scope Process -Force;
-        
-        # Download and run the Chocolatey installation script
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; # Tls 1.2
         $installScript = Invoke-WebRequest -Uri "https://community.chocolatey.org/install.ps1" -UseBasicParsing
         Invoke-Expression $installScript.Content
-
-        # Refresh environment variables to find 'choco'
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
         
         if (Get-Command "choco" -ErrorAction SilentlyContinue) {
@@ -73,9 +71,6 @@ else {
 Write-Host ""
 
 # --- 3. Install ClamAV using the determined package manager ---
-# This is the single, stable directory we will use for everything.
-$clamDir = "C:\Program Files\ClamAV-Cisco"
-
 Write-Host "Starting ClamAV installation using $packageManager..." -ForegroundColor Yellow
 try {
     if ($packageManager -eq "winget") {
@@ -84,28 +79,48 @@ try {
     }
     elseif ($packageManager -eq "choco") {
         Write-Host "Using choco to install clamav-cisco..." -ForegroundColor Cyan
-        # --- THIS IS THE FIX ---
-        # Install the 'clamav-cisco' package, not 'clamav'
         Start-Process "choco" -ArgumentList "install clamav-cisco -y --force" -Wait
     }
-    
-    # Verify installation by checking the stable directory
-    if (-not (Test-Path $clamDir)) {
-        throw "Installation command ran, but ClamAV directory was not found at '$clamDir'. This may be a new package version with a different path."
-    }
-    Write-Host "ClamAV package installed successfully." -ForegroundColor Green
+    Write-Host "ClamAV package installation command complete." -ForegroundColor Green
 }
 catch {
-    Write-Error "ClamAV installation failed."
+    Write-Error "ClamAV installation failed during the $packageManager process."
     Write-Error $_.Exception.Message
     exit 1
 }
 Write-Host ""
 
-# --- 4. Post-Installation Configuration ---
+# --- 4. Dynamically Find the Installation Path ---
+Write-Host "Searching for ClamAV installation directory..." -ForegroundColor Yellow
+$clamDir = $null
+try {
+    # Refresh the environment path in case choco just added it
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    
+    # Search for the executable
+    $clamExePath = (Get-Command clamd.exe -ErrorAction Stop).Source
+    
+    if (-not $clamExePath) {
+        throw "Could not find clamd.exe after installation."
+    }
+    
+    # Get the parent directory of the executable
+    $clamDir = Split-Path -Path $clamExePath -Parent
+    
+    Write-Host "Found ClamAV installation at: $clamDir" -ForegroundColor Cyan
+}
+catch {
+    Write-Error "Installation failed: The script ran the installer, but could not find 'clamd.exe' on the system."
+    Write-Error "Please try running 'refreshenv' and then run this script again."
+    Write-Error $_.Exception.Message
+    exit 1
+}
+Write-Host ""
+
+# --- 5. Post-Installation Configuration ---
 Write-Host "Running post-installation configuration..." -ForegroundColor Yellow
 try {
-    # Use the stable config directory path
+    # Use the dynamically-found config directory path
     $configDir = $clamDir
     
     # Create the database directory
@@ -126,22 +141,22 @@ try {
     Add-Content "$configDir\clamd.conf" "`nDatabaseDirectory `"$dbDir`""
     
     # Add a line to freshclam.conf to specify the database directory
-    Add-Content "$configDiri\freshclam.conf" "`nDatabaseDirectory `"$dbDir`""
+    Add-Content "$configDir\freshclam.conf" "`nDatabaseDirectory `"$dbDir`""
     
     Write-Host "Configuration files created." -ForegroundColor Green
 }
 catch {
-    Write-Error "Failed to create configuration files."
+    Write-Error "Failed to create configuration files at '$configDir'."
+    Write-Error "This can happen if the package structure is unexpected."
     Write-Error $_.Exception.Message
     exit 1
 }
 Write-Host ""
 
-# --- 5. Update Virus Definitions ---
+# --- 6. Update Virus Definitions ---
 Write-Host "Updating virus definitions with freshclam..." -ForegroundColor Yellow
 try {
     $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-    # Use the stable executable path
     $processInfo.FileName = "$configDir\freshclam.exe"
     $processInfo.RedirectStandardOutput = $true
     $processInfo.RedirectStandardError = $true
@@ -166,16 +181,12 @@ catch {
 }
 Write-Host ""
 
-# --- 6. Install, Register, and Start Services ---
+# --- 7. Install, Register, and Start Services ---
 Write-Host "Registering and starting ClamAV services..." -ForegroundColor Yellow
 try {
-    # Use the stable executable paths
-    # Install clamd as a service
     Start-Process "$configDir\clamd.exe" -ArgumentList "--install" -Wait
-    # Install freshclam as a service
     Start-Process "$configDir\freshclam.exe" -ArgumentList "--install" -Wait
     
-    # Start the services
     Start-Service -Name "ClamAV Clamd" -ErrorAction Stop
     Start-Service -Name "ClamAV FreshClam" -ErrorAction Stop
     
