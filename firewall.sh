@@ -1,33 +1,27 @@
-Sudo apt install iptables 
+sudo apt install iptables 
 
-Iptables –A INPUT -I lo –j ACCEPT 
+iptables –A INPUT -I lo –j ACCEPT 
 
-Sudo iptables –P INPUT DROP 
+sudo iptables –P INPUT DROP 
 
-Iptables –A INPUT –m conntrack –ctstate ESTABLISHED,RELATED –j ACCEPT 
+iptables –A INPUT –m conntrack –ctstate ESTABLISHED,RELATED –j ACCEPT 
 
-Iptables –A INPUT –p tcp –dport 80 –m conntrack –ctstate NEW –j ACCEPT 
+iptables –A INPUT –p tcp –dport 80 –m conntrack –ctstate NEW –j ACCEPT 
 
-Iptables –A INPUT –p tcp –dport 443 –m conntrack –ctstate NEW –j ACCEPT 
+iptables –A INPUT –p tcp –dport 443 –m conntrack –ctstate NEW –j ACCEPT 
 
-Iptables –A INPUT –p tcp –dport 22 –m conntrack –ctstate NEW –j ACCEPT 
+iptables –A INPUT –p tcp –dport 22 –m conntrack –ctstate NEW –j ACCEPT 
 
-Iptables –N LOG_AND_DROP 
-
- 
-
-//to save current rules 
-
-Sudo apt-get install iptables-persistent 
+iptables –N LOG_AND_DROP 
 
  
 
-//to save changes 
-
-Sudo netfilter-persistent save 
+sudo apt-get install iptables-persistent 
 
  
 
-//to see iptables rules 
+sudo netfilter-persistent save 
 
-Sudo iptables –L –n –v –line-numbers 
+ 
+
+sudo iptables –L –n –v –line-numbers 
