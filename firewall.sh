@@ -1,29 +1,27 @@
-sudo apt install iptables 
+#!/bin/bash
 
-iptables –A INPUT -I lo –j ACCEPT 
+sudo iptables -F
+sudo iptables -X
 
-sudo iptables –P INPUT DROP 
+sudo iptables -A INPUT -i lo -j ACCEPT
 
-iptables –A INPUT –m conntrack –ctstate ESTABLISHED,RELATED –j ACCEPT 
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-iptables –A INPUT –p tcp –dport 80 –m conntrack –ctstate NEW –j ACCEPT 
+sudo iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT  # SSH
+sudo iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -j ACCEPT  # HTTP
+sudo iptables -A INPUT -p tcp --dport 443 -m conntrack --ctstate NEW -j ACCEPT # HTTPS
 
-iptables –A INPUT –p tcp –dport 443 –m conntrack –ctstate NEW –j ACCEPT 
+sudo iptables -A INPUT -j LOG_AND_DROP
 
-iptables –A INPUT –p tcp –dport 22 –m conntrack –ctstate NEW –j ACCEPT 
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP # Also good practice
 
-iptables –N LOG_AND_DROP 
+echo "Firewall rules applied:"
+sudo iptables -L -n -v --line-numbers
 
- 
+echo "Installing persistence package..."
+sudo apt-get install -y iptables-persistent
+echo "Saving rules..."
+sudo netfilter-persistent save
 
-sudo apt-get install iptables-persistent 
-
- 
-
-sudo netfilter-persistent save 
-
- 
-
- 
-
-sudo iptables –L –n –v --line-numbers 
+echo "Firewall setup complete and saved."
