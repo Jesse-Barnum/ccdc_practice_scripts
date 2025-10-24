@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 #this script installs both CLamAV and Wazuh on Linux distributions. 
 
 # 1. Check for Root Privileges
