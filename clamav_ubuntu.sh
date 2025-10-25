@@ -14,6 +14,7 @@ fi
 # This prevents repository errors caused by an incorrect system clock.
 echo "--- Syncing system time..."
 sudo timedatectl set-ntp on
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 96B3EE5F29111145
 
 # 3. Install ClamAV
 echo "--- Installing ClamAV..."
