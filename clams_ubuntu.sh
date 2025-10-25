@@ -14,7 +14,9 @@ fi
 # This prevents repository errors caused by an incorrect system clock.
 echo "--- Syncing system time..."
 sudo timedatectl set-ntp on
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 96B3EE5F29111145
+sudo mkdir -p /etc/apt/keyrings
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/keyrings/wazuh.gpg --import && sudo chmod 644 /etc/apt/keyrings/wazuh.gpg
+
 
 # 3. Install ClamAV
 echo "--- Installing ClamAV..."
