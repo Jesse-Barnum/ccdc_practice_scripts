@@ -47,8 +47,9 @@ sudo systemctl start wazuh-agent
 # Prints the status of the installed services.
 echo "--- Installation Complete. Verifying services... ---"
 echo "--- ClamAV Status: ---"
-sudo systemctl status clamav-daemon
 sudo ss -a | grep clamd
+sudo systemctl status clamav-daemon
+
 
 echo "" # Add a space for readability
 echo "--- Wazuh Agent Status: ---"
