@@ -7,6 +7,8 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+sudo timedatectl set-ntp on
+
 sudo apt update && sudo apt install clamav clamav-daemon
 sudo systemctl stop clamav-freshclam
 sudo freshclam # initial DB pull
