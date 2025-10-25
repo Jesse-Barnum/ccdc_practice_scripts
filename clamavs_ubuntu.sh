@@ -14,8 +14,6 @@ fi
 # This prevents repository errors caused by an incorrect system clock.
 echo "--- Syncing system time..."
 sudo timedatectl set-ntp on
-sudo mkdir -p /etc/apt/keyrings
-curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/keyrings/wazuh.gpg --import && sudo chmod 644 /etc/apt/keyrings/wazuh.gpg
 
 
 # 3. Install ClamAV
@@ -31,6 +29,9 @@ sudo systemctl enable --now clamav-freshclam clamav-daemon
 # 4. Install Wazuh Agent
 echo "--- Installing Wazuh Agent..."
 WAZUH_MANAGER_IP="10.0.0.5" # IMPORTANT: Change this if your manager IP is different
+
+sudo mkdir -p /etc/apt/keyrings
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/keyrings/wazuh.gpg --import && sudo chmod 644 /etc/apt/keyrings/wazuh.gpg
 
 # Add the Wazuh repository GPG key and sources
 curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import && sudo chmod 644 /usr/share/keyrings/wazuh.gpg
