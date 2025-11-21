@@ -15,7 +15,6 @@ fi
 echo "Checking system information..."
 
 # 2. Identify the Operating System
-# Most modern Linux distros have this file
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
@@ -29,6 +28,21 @@ echo "Detected Operating System: $PRETTY_NAME ($OS)"
 
 # 3. Define Installation Functions
 
+install_snap_fallback() {
+    echo "-----------------------------------------------------"
+    echo "APT/YUM installation failed or package not found."
+    echo "Attempting to install via Snap (universal package manager)..."
+    echo "-----------------------------------------------------"
+    
+    if command -v snap &> /dev/null; then
+        snap install powershell --classic
+    else
+        echo "Error: Snap is not installed, and native package manager failed."
+        echo "Please ensure 'snapd' is installed and try again."
+        exit 1
+    fi
+}
+
 install_ubuntu_debian() {
     echo "Starting installation for Debian/Ubuntu based system..."
 
@@ -37,20 +51,18 @@ install_ubuntu_debian() {
     apt-get install -y wget apt-transport-https software-properties-common
 
     # Register the Microsoft repository GPG keys
-    # We use a generic logic here, but for specific versions, MS has specific .deb files.
-    # This block dynamically grabs the version to build the URL.
+    echo "Downloading Microsoft repository configuration..."
     
-    # NOTE: If the specific version repo doesn't exist, it often works to fall back to a major LTS version (like 22.04 or 20.04)
-    # but for this script, we will try to match the detected version.
-    
+    # Attempt to download specific version config
     wget -q "https://packages.microsoft.com/config/$OS/$VERSION/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb
     
-    if [ $? -ne 0 ]; then
-        echo "Warning: Could not find specific repo for $OS $VERSION. Trying generic fallback..."
-        # Fallback for Ubuntu
+    # Check if download succeeded (size > 0)
+    if [ ! -s packages-microsoft-prod.deb ]; then
+        echo "Warning: Specific repo for $OS $VERSION not found. Trying generic LTS fallback..."
+        # Fallback for Ubuntu (Use 22.04 LTS as a safe anchor)
         if [[ "$OS" == "ubuntu" ]]; then
              wget -q "https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb
-        # Fallback for Debian
+        # Fallback for Debian (Use 11 as a safe anchor)
         elif [[ "$OS" == "debian" ]]; then
              wget -q "https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb
         fi
@@ -60,24 +72,30 @@ install_ubuntu_debian() {
     dpkg -i packages-microsoft-prod.deb
     rm packages-microsoft-prod.deb
 
-    # Update and Install
+    # Update package list
     apt-get update
-    echo "Installing PowerShell..."
-    apt-get install -y powershell
+    
+    # Check if powershell is actually available now
+    if apt-cache show powershell &> /dev/null; then
+        echo "Installing PowerShell via APT..."
+        apt-get install -y powershell
+    else
+        echo "Error: 'powershell' package not found in the configured repositories."
+        install_snap_fallback
+    fi
 }
 
 install_rhel_fedora() {
     echo "Starting installation for RHEL/CentOS/Fedora based system..."
     
     # Register the Microsoft RedHat repository
-    # Using RHEL 8/9 repo is standard for modern RPM distros
     curl https://packages.microsoft.com/config/rhel/8/prod.repo | tee /etc/yum.repos.d/microsoft.repo
 
     echo "Installing PowerShell..."
     if command -v dnf &> /dev/null; then
-        dnf install -y powershell
+        dnf install -y powershell || install_snap_fallback
     else
-        yum install -y powershell
+        yum install -y powershell || install_snap_fallback
     fi
 }
 
@@ -91,18 +109,8 @@ case "$OS" in
         install_rhel_fedora
         ;;
     *)
-        echo "-----------------------------------------------------"
-        echo "Alert: The detected OS ($OS) is not natively supported by this script logic."
-        echo "Attempting to install via Snap (universal package manager)..."
-        echo "-----------------------------------------------------"
-        
-        if command -v snap &> /dev/null; then
-            snap install powershell --classic
-        else
-            echo "Error: Snap is not installed, and native package manager is not supported."
-            echo "Please install 'snapd' or install PowerShell manually."
-            exit 1
-        fi
+        echo "OS not natively supported by specific blocks. Defaulting to Snap..."
+        install_snap_fallback
         ;;
 esac
 
@@ -113,6 +121,6 @@ if command -v pwsh &> /dev/null; then
     echo "Type 'pwsh' to start."
     pwsh --version
 else
-    echo "Installation may have failed. Please check the error logs above."
+    echo "Installation failed. Please check the error logs above."
     exit 1
 fi
