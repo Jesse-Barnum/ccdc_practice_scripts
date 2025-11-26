@@ -1,5 +1,5 @@
 ## Nmap
-This is a playbook describing how to Port Scan and identify running services on associated ports. 
+This is a playbook describing how to Port Scan and identify running services on associated ports using the Network Mapping Tool, 'nmap'. 
 
 ### General Steps for Linux and Windows 
 | Description                          | Tasks                                                                                                                                                                                                                                                |
