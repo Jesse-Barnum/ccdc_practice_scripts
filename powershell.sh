@@ -28,3 +28,6 @@ sudo apt-get install -y powershell
 
 # Start PowerShell
 pwsh
+echo "to exit powershell, use 'exit' "
+echo "if powershell failed to install, try 'sudo snap install powershell --classic' "
+
