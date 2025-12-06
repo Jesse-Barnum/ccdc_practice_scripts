@@ -16,3 +16,8 @@ sudo apt-get update
 
 # 5. INSTALL: Install the agent
 sudo WAZUH_MANAGER="192.168.220.240" apt-get install -y wazuh-agent
+
+systemctl daemon-reload
+systemctl enable wazuh-agent
+systemctl start wazuh-agent
+systemctl status wazuh-agent
