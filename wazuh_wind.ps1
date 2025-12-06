@@ -52,7 +52,7 @@ if ($process.ExitCode -eq 0) {
 
 # 5. Start the Service
 Write-Host "--- Starting Wazuh Service..." -ForegroundColor Cyan
-Start-Service -Name wazuh-agent
-Get-Service -Name wazuh-agent | Select-Object Status, Name, DisplayName
+Start-Service wazuhsvc
+Get-Service wazuhsvc | Select-Object Status, Name, DisplayName
 
 Write-Host "Done."
