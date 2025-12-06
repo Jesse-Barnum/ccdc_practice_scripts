@@ -49,7 +49,5 @@ echo ""
 echo "--- Installation Complete! ---"
 echo "Verifying Wazuh Agent connection..."
 # --no-pager prevents the script from hanging on an interactive screen
-systemctl status wazuh-agent --no-pager
+systemctl status wazuh-agent
 
-echo ""
-echo "Done."
