@@ -1,7 +1,7 @@
 #!/bin/bash
 # Unified Wazuh Agent Installation Script
 # Works on: CentOS 7/8/Stream, Rocky Linux, AlmaLinux, RHEL
-# Author: Gemini (Combined from user inputs)
+
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
@@ -65,8 +65,7 @@ systemctl start wazuh-agent
 echo ""
 echo "--- Installation Complete! ---"
 echo "Verifying Wazuh Agent connection..."
-# --no-pager prevents the script from hanging on an interactive screen
-systemctl status wazuh-agent --no-pager
+systemctl status wazuh-agent 
 
 echo ""
 echo "Done."
