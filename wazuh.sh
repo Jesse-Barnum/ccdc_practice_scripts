@@ -6,9 +6,23 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# --- Configuration ---
-WAZUH_MANAGER_IP="192.168.220.240"
+set -e
 
+# --- 1. User Input for Configuration ---
+# Prompt user for IP
+read -p "Enter the Wazuh Manager IP address: " WAZUH_MANAGER_IP
+
+# Simple check to ensure the variable isn't empty
+if [ -z "$WAZUH_MANAGER_IP" ]; then
+    echo "Error: No IP address provided. Exiting."
+    exit 1
+fi
+
+# --- 2. Check for Root Privileges ---
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Error: This script must be run as root. Please use sudo." >&2
+  exit 1
+fi
 # 1. Check for Root Privileges
 if [ "$(id -u)" -ne 0 ]; then
   echo "Error: This script must be run as root. Please use sudo." >&2
