@@ -48,7 +48,8 @@ It is suggested that you install tailscale on two devices in the network and che
 | 7\. Add the client as a Peer in Server Config File | Select your Server Config file unfer 'Tunnels' (the one called WireGuard-Server) and select Edit in the bottom right corner. <br> Add the following to the Config file: <pre> [Peer] <br> PublicKey = 'THE SAVED PUBLIC KEY FOR THE CLIENT' <br> AllowedIPs = 10.0.0.2/32 </pre> Make sure you add in the saved client public key! <br> Hit Save.
 | 8\. Export Config files | Export the COnfiguration Files for the Server and Client using the Zip Icon at the bottom of the screen. Extract the Client config file and trafer it to another client device. 
 | 9\. Activate the VPN connection | Select the Activate Button on the main WireGuard screen. 
-|10\. 
+|10\. Allow WireGuard on Firewall | Add Firewall rules on the host devces and external router firewall to allow internal and external acces on port 51820. 
+| 11\. Install WireGuard on Client | Install Wireguard on another Windows or Linux device. This should be the device that you transfered the client Config file to. <br> upload the Client Config tunnel into the wireguard app using the "Import Tunnel from File" under the "Add Tunnel" carrot. <br> Select the toggle Icon and turn on Client 1. <br> You should now see a connected peer on your server device.  
 
 ### Linux
 
