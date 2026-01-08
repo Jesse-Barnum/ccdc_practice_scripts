@@ -33,10 +33,17 @@ This inject often requires donwloading each VPN on at least one device to test c
 | 2\. Log into Tailscale | Run the following command to initialize Tailscale: <pre>> sudo tailscale up </pre> <br> After a few minutes, your CLI should provide you with an authentication link. Follow that link and Log in to Tailscale using your own account (google). After logging in, your CLI will say 'Success' |
 | 3\. Ensure connectivity | Run this command to display the devices that are currently connected to your tailscale account. It should list your IP address and the name of your device. If your device is not connected, connection did not work properly. <pre>> sudo tailscale status <pre>
 
-
+It is suggested that you install tailscale on two devices in the network and check the network connectivty status between the two when you are on the network versus not on the network. 
 
 ## Testing Wireguard
 
 
 ## Testing ZeroTeir
+
+
+## Installing Tailscale using Ansible
+
+##
+Most of these injects require a guide to be made to show employees how to install tailscale on their device in order to access the network. The following section includes all the information that we need to include in the guide to help user properly connect to Tailscale and access devices on the Network. 
+## A user's guide to Tailscale
 
