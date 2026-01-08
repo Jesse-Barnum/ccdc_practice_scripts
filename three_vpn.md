@@ -27,6 +27,12 @@ This inject often requires donwloading each VPN on at least one device to test c
 | 5\. Ensure Connection | You should be brought to a page with a large black heading entitled "Machines". You should see the Machine you are currently on listed under connected machines. <br> To ensure connection, looking for the Tailscale logo in your system tray. Right click on the system tray and look for 'Connected' under 'Tailscale' at the top of the pop-up. If it says 'Not Connected', select the word 'Tailscale' to connect to the VPN.
 
 ### Linux 
+| Steps                          | Tasks                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Install Tailscale     | Install Tailscale using this command: <pre>> curl -fsSL https://tailscale.com/install.sh \| sh </pre>.|
+| 2\. Log into Tailscale | Run the following command to initialize Tailscale: <pre>> sudo tailscale up </pre> <br> After a few minutes, your CLI should provide you with an authentication link. Follow that link and Log in to Tailscale using your own account (google). After logging in, your CLI will say 'Success' |
+| 3\. Ensure connectivity | Run this command to display the devices that are currently connected to your tailscale account. It should list your IP address and the name of your device. If your device is not connected, connection did not work properly. <pre>> sudo tailscale status <pre>
+
 
 
 ## Testing Wireguard
