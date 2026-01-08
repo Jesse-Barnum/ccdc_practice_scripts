@@ -52,7 +52,12 @@ It is suggested that you install tailscale on two devices in the network and che
 | 11\. Install WireGuard on Client | Install Wireguard on another Windows or Linux device. This should be the device that you transfered the client Config file to. <br> upload the Client Config tunnel into the wireguard app using the "Import Tunnel from File" under the "Add Tunnel" carrot. <br> Select the toggle Icon and turn on Client 1. <br> You should now see a connected peer on your server device.  
 
 ### Linux
-
+| Steps                          | Tasks                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Install Tailscale     | Run the following command based on operating system: <pre> Ubuntu/Debian: sudo apt install wireguard </pre> <br> <pre> Fedora: sudo dnf install wireguard-tools </pre> <br> <pre> Alpine: apk add -U wireguard-tools </pre> <br> For all other Linux distrubtions, visit wireguard.com/install to see the correct CLI command to use.|
+| 2\. Generate Keys | YOU MUST BE IN A ROOT TERMINAL TO DO THIS. RUN this command to get a root terminal <pre> sudo -i </pre> Navigate to the wrieguard system files. <pre>> cd /etc/wireguard/ </pre> <br> Run the following command to generate the system keys <pre>> wg genkey \| tee privatekey \| wg pubkey > publickey </pre> <br> Display the private and public key to your terminal <pre>> cat publickey <br>> cat privatekey </pre>|
+| 3\. Configure Wireguard | Create and edit a file called 'wg0.conf'. Inside of the conf file, enter this: <pre> \[Interface\] <br> Address = 10.0.0.1/24 <br> ListenPort = 51820 <br> PrivateKey = ENTER-THE-PRIVATEKEY-THAT-WAS-JUST-CREATED </pre> |
+|4\. Start wg0 | Run the following commands: <pre> wg-quick up wg0 <br> wg-quick down wg0 <br> systemctl start wg-quick@wg0 <br> systemctl enable wg-qucik@wg0 <br> systemctl status wg-quick@wg0 <br> wg show </pre> |
 
 ## Testing ZeroTeir
 ### Windows
