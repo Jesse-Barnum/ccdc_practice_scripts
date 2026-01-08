@@ -36,9 +36,27 @@ This inject often requires donwloading each VPN on at least one device to test c
 It is suggested that you install tailscale on two devices in the network and check the network connectivty status between the two when you are on the network versus not on the network. 
 
 ## Testing Wireguard
+### Windows
+| Steps                          | Tasks                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Install Tailscale     | Navigate to https://wireguard.com/install/ and select 'Download Windows installer'.|
+| 2\. Run the Installer from Downloads | From downloads, select and run the wirguard-installer.exe while following the prompts to installation including agreeing to terms and installing. |
+| 3\. Add Tunnel |  Select the carrot icon next to the words 'Add Tunnel' on the wireguard application and select 'Add Empty Tunnel' <br> Wireguard will create a set of private and public keys for you. <br> Give the tunnel a name such as "WireGuard-Server" DO NOT HIT THE 'SAVE' Button yet! |
+| 4\. Save Server Public Key | Save a copy of the server's public key by copy and pasting it into a notes file or other file. DO NOT HIT THE 'SAVE' Button yet!
+| 5\. Adding further configuration  | Add 'ListenPort = 51820' and 'Address = 10.0.0.1/24' underneath the PrivateKey and hit Save. 
+| 6\. Create client configuration file | Once again, select 'Add Empty Tunnel' and name it 'Client Configuration File'. <br> Copy and save the client's public key in the same file as the server's public key. <br> add the following settings to the Client Configuration File: <pre> Address = 10.0.0.2/24 <br> DNS = 8.8.8.8, 8.8.4.4 <br> [Peer] <br> PublicKey = Server Public Key <br> AllowedIPs = 0.0.0.0/0 <br> Endpoint = Server Public IP:51820 </pre> Replace the 'Server Public Key' with your previously saved public key. <br> Replace 'Server Public IP with the public IP address of your server device. Hit Save.
+| 7\. Add the client as a Peer in Server Config File | Select your Server Config file unfer 'Tunnels' (the one called WireGuard-Server) and select Edit in the bottom right corner. <br> Add the following to the Config file: <pre> [Peer] <br> PublicKey = 'THE SAVED PUBLIC KEY FOR THE CLIENT' <br> AllowedIPs = 10.0.0.2/32 </pre> Make sure you add in the saved client public key! <br> Hit Save.
+| 8\. Export Config files | Export the COnfiguration Files for the Server and Client using the Zip Icon at the bottom of the screen. Extract the Client config file and trafer it to another client device. 
+| 9\. Activate the VPN connection | Select the Activate Button on the main WireGuard screen. 
+|10\. 
+
+### Linux
 
 
 ## Testing ZeroTeir
+### Windows
+
+### Linux
 
 
 ## Installing Tailscale using Ansible
