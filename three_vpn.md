@@ -14,7 +14,7 @@ The 3 VPN options chosen that meet these requirements are Tailscale, WireGuard, 
 | **Ansible Compatibility** | Easy integration with Ansible, installation automation can be done easily with 'tailscale up' and an authorization key. | Difficult. Integration with ansible requires heavy logic to generate, fetch, and distrubte keys among all devices. | Fair integration, but requires techincal expertise to automate the interaction with the ZT API for device joining and approved connection. |
 
 ##
-This inject often requires donwloading each VPN on at least one device to test compatability with the network and test overall usability. The next section of the playbook will focus on implementing each VPN into the network on either a Windows or a Linux device. 
+This inject often requires donwloading each VPN on at least one device to test compatability with the network and test overall usability. The next section of the playbook will focus on implementing each VPN into the network on either a Windows or a Linux device. **Please note that you may only need to implement the VPN on one device instead of multiple to ensure that it is possible to implement on the network**. These instructions show how to implement each VPN on Windows and Linux devices - choose whichever is the best fit for the device you are one. 
 
 ## Testing Tailscale
 ### Windows
