@@ -117,6 +117,26 @@ This is the Ansible Playbook that can be used to install Tailscale using Ansible
 </pre>
         
 ##
-Most of these injects require a guide to be made to show employees how to install tailscale on their device in order to access the network. The following section includes all the information that we need to include in the guide to help user properly connect to Tailscale and access devices on the Network. 
+
 ## A user's guide to Tailscale
+Most of these injects require a guide to be made to show employees how to install tailscale on their device in order to access the network. The following section includes all the information that we need to include in the guide to help user properly connect to Tailscale and access devices on the Network. Below is an example guide which can be used in the inject. **Remember to include plenty of screenshots for this user guide**. 
+
+
+### User Guide Outline
+1. Navigate to https://tailscale.com/download and installing Tailscale for Windows or Linux, depending on host device.  
+2. If on windows, select the downloaded file and allow the executable to run (tailscale-setup-1.90.6.exe). If on Linux, follow these commands: <pre>  curl -fsSL https://tailscale.com/install.sh \| sh && sudo tailscale up </pre> 
+ 
+3. If on windows, allow the app to make changes to the device and agree to the license terms and conditions.  
+ 
+ 
+4. After successful installation, navigate to https://login.tailscale.com/ and log in using your company email address. If you are on a linux device, a similar link will appear in your Command Line Interface Terminal shortly after running the initial command found in step 2. 
+ 
+5. Select the big blue ‘Connect' button that asks you to connect to your device. 
+You should now be able to see a screen that displays all connected devices.   
+ 
+6. Your device will now be connected to Tailscale. Your connection status can be seen by clicking the Tailscale Logo in your System tray on windows or by running 'tailscale status' in the CLI.   
+ 
+7. FOR WINDOWS USERS: Select the word “Tailscale” at the top of the pop-up which allows you to easily disconnect and connect to the VPN. FOR LINUX USERS: You can disconnect to the tailscale VPN by running 'sudo tailscale down' and reconnect using 'sudo tailscale up'. 
+ 
+Now that you are connected to the VPN, you can access all internal devices and networks. 
 
