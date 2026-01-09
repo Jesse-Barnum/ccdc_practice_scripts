@@ -29,6 +29,7 @@ This inject often requires donwloading each VPN on at least one device to test c
 ### Linux 
 | Steps                          | Tasks                                                                                                                                                                                                                                                |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|0\. For devices with no GUI, follow this step | Run the following command to connect your device to the Tailscale network: <pre>> curl -fsSL https://tailscale.com/install.sh \| sh && sudo tailscale up --auth-key=tskey-auth-kAXeUh226621CNTRL-oLEJUQuPAcTuwEe8QsX9cTYQDBXpjJXP. </pre> The authkey can be changed manually by generating a new key on tailscale.com after you log in. 
 | 1\. Install Tailscale     | Install Tailscale using this command: <pre>> curl -fsSL https://tailscale.com/install.sh \| sh </pre>.|
 | 2\. Log into Tailscale | Run the following command to initialize Tailscale: <pre>> sudo tailscale up </pre> <br> After a few minutes, your CLI should provide you with an authentication link. Follow that link and Log in to Tailscale using your own account (google). After logging in, your CLI will say 'Success' |
 | 3\. Ensure connectivity | Run this command to display the devices that are currently connected to your tailscale account. It should list your IP address and the name of your device. If your device is not connected, connection did not work properly. <pre>> sudo tailscale status <pre>
@@ -76,7 +77,45 @@ It is suggested that you install tailscale on two devices in the network and che
 |3\. Connect your device to ZeroTeir | Run the following command to join your device to he ZeroTier network: <pre>> sudo zerotier-cli join NETWORK-ID </pre> MAKE SURE TO REPLACE THE NETWORK-ID with the ID found on the ZeroTier website. Refresh the website to see the device joined. <br> If the device did not join correctly, you can add the device manually on the website. On the ZeroTier website, select 'Add Member Device". Under "device ID', copy the device's address ID that was listed in the terminal with "You are ZeroTier address ...". Select 'Add Member Device" after inputting in the device address to connect the device to your network. 
 
 ## Installing Tailscale using Ansible
+This is the Ansible Playbook that can be used to install Tailscale using Ansible:
+<pre> - name: Install Tailscale
+  hosts: myhosts
+  become: true
+  tasks:
+    - name: Download Tailscale GPG Key
+      ansible.builtin.uri:
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        url: https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg 
 
+    - name: Add Tailscale repository
+      ansible.builtin.uri:
+        dest: /etc/apt/sources.list.d/tailscale.list
+        url: https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list
+
+    - name: Install Tailscale
+      ansible.builtin.apt:
+        name: tailscale
+        update_cache: true
+        state: present 
+    - name: Ensure tailscaled is enabled and started
+      ansible.builtin.systemd:
+        name: tailscaled
+        state: started
+        enabled: true
+
+    - name: Check Tailscale status
+      ansible.builtin.command: tailscale status
+      register: tailscale_status
+      changed_when: false
+      failed_when: false
+- name: Authenticate to Tailscale
+      ansible.builtin.command: 
+        cmd: tailscale up --authkey=tskey-auth-kAXeUh226621CNTRL-oLEJUQuPAcTuwEe8QsX9cTYQDBXpjJXP
+      when: "'Logged out' in tailscale_status.stdout or 'No Tailscale' in tailscale_status.stdout"
+      changed_when: true
+
+</pre>
+        
 ##
 Most of these injects require a guide to be made to show employees how to install tailscale on their device in order to access the network. The following section includes all the information that we need to include in the guide to help user properly connect to Tailscale and access devices on the Network. 
 ## A user's guide to Tailscale
