@@ -1,7 +1,7 @@
 This is a playbook in response to the common inject request to research 3 VPN options that a company should be considered and can easily be implemented to allow external secure access into the company’s internal network. Most of these injects ask the option to be compatible with for implementation with ansible. This playbook will walk you through the 3 best VPN options and the general response to provide for this inject. 
 
 For this playbook and in the competition, we will be choosing between 3 VPNs that are easy to implement, meet the comapny needs, and that sometimes need to be implemented using ansible. 
-The 3 VPN options chosen that meet these requirements are Tailscale, WireGuard, and ZeroTeir. 
+The 3 VPN options chosen that meet these requirements are Tailscale, WireGuard, and ZeroTier. 
 
 ## Comparing and Contrasting the 3 VPNs ##
 
@@ -59,11 +59,21 @@ It is suggested that you install tailscale on two devices in the network and che
 | 3\. Configure Wireguard | Create and edit a file called 'wg0.conf'. Inside of the conf file, enter this: <pre> \[Interface\] <br> Address = 10.0.0.1/24 <br> ListenPort = 51820 <br> PrivateKey = ENTER-THE-PRIVATEKEY-THAT-WAS-JUST-CREATED </pre> |
 |4\. Start wg0 | Run the following commands: <pre> wg-quick up wg0 <br> wg-quick down wg0 <br> systemctl start wg-quick@wg0 <br> systemctl enable wg-qucik@wg0 <br> systemctl status wg-quick@wg0 <br> wg show </pre> |
 
-## Testing ZeroTeir
+## Testing ZeroTier
 ### Windows
+| Steps                          | Tasks                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Create an account on zerotier.com | Go to ZeroTier.com on an external device and select 'Login' and then Login with google or create a username and password. Create  a new network and name it something fun! Find the Network ID - you will need it for a later step. |
+| 2\. Install ZeroTier    | Navigate to https://zerotier.com/download and select 'MSI Installer'.|
+| 3\. Run the Installer from Downloads | From downloads, select and run the tailscale-setup-1.92.5.e'ZeroTeir One.msi' while following the prompts to installation including agreeing to terms and installing. |
+|4\. Connect your device to ZeroTeir | Open ZeroTier and it should appear as an icon on the system tray. Select the ZeroTeir icon from the system tray and click 'Join New Network'. Paste in the Network ID from the ZeroTier website. <br> If the device does not appear as a 'member device' on the ZeroTier website, then click 'Add Member Device' on the website and type in the device's  ID located next to the words 'My Address' when you click ZeroTier from the system tray on the device you are attempting to connect. |
 
 ### Linux
-
+| Steps                          | Tasks                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Create an account on zerotier.com | Go to ZeroTier.com on an external device and select 'Login' and then Login with google or create a username and password. Create  a new network and name it something fun! Find the Network ID - you will need it for a later step. |
+| 2\. Install ZeroTier     | Install ZeroTier using this command: <pre>. curl -s https://install.zerotier.com \| sudo bash </pre> Notice that it should say "Success! You are ZeroTier Address ...|
+|3\. Connect your device to ZeroTeir | Run the following command to join your device to he ZeroTier network: <pre>> sudo zerotier-cli join NETWORK-ID </pre> MAKE SURE TO REPLACE THE NETWORK-ID with the ID found on the ZeroTier website. Refresh the website to see the device joined. <br> If the device did not join correctly, you can add the device manually on the website. On the ZeroTier website, select 'Add Member Device". Under "device ID', copy the device's address ID that was listed in the terminal with "You are ZeroTier address ...". Select 'Add Member Device" after inputting in the device address to connect the device to your network. 
 
 ## Installing Tailscale using Ansible
 
