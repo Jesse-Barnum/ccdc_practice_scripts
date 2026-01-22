@@ -1,7 +1,8 @@
 ## Password Policy 
 This playbook focuses on providing direction on how to effectively implement an adequate password policy in response to the inject which generally asks us to use Industry based standards to properly secure our systems with a secure password policy. This playbook will describe the general steps of implementing the password policy on both Linux and Windows systems as well as direct you to the inject response contained in the public-ccdc-resources for injects. 
 
-**Please note that although these standards meet NIST and Microsoft industry standards, the inject may request different standards such as the implementation of an age/expiration for passwords** 
+**Please note that although these standards meet NIST and Microsoft industry standards, the inject may request different standards such as the implementation of an age/expiration for passwords**
+
 For initial reference, here is a password policy that meets industry standards such as NIST 800-63B  (https://pages.nist.gov/800-63-3/sp800-63b.html). The bolded portions of this password policy are those which you must implement onto the Windows/Linux systems.
 
 1. **User-generated passwords should be at least 8 characters long.**
@@ -25,9 +26,13 @@ Other considerations include
 ## Implementing the Password Policy
 ### General Steps for Linux
 
-| OS                          | Method of Execution                                                                                                                                                                                                                                                |
+| Step                          | Method of Execution                                                                                                                                                                                                                                                |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ubuntu / Debian / Mint / Raspberry Pi   | 1\. <pre>> getent group sudo \| cut -d: -f4</pre> <br> 2\. <pre>> cat /etc/passwd </pre> Any usernames with UID 0 have root level priveleges. 
-| Rocky / Fedora / CentOS / Alpine / BSD(all)   |1\. <pre>> getent group wheel</pre> <br> 2\. <pre>> lid -g wheel </pre> 
+| 1\.   |  **Ubuntu / Debian / Mint / Raspberry Pi:** <br> **Rocky / Fedora / CentOS / Alpine / BSD(all):**
+| 2\.    |
 
-### General Steps for Linux
+### General Steps for Windows
+| Step                          | Method of Execution                                                                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1\. Navigate to Active Directory    | The password policy will need to be implmented on the Active Directory / Domain Controller box only. The password policy cannot be updated in the local group policy for any AD bound device. 
+| 2\. Open Group Policy on DC | Navigate to the Group Policy on the DC where the Password Policy is located. <br> Password policies are located in the **Group Policy Management Console (GPMC)** on the domain controller, specifically within the Default Domain Policy (or other GPOs linked to OUs/Domains) under **Computer Configuration > Policies > Windows Settings > Security Settings > Account Policies > Password Policy**.
