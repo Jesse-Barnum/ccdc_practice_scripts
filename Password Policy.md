@@ -39,4 +39,4 @@ Other considerations include
 | 3\. Update Password Policy | Change the Password Policy to include the following settings: <pre> Maximum password age: 90 days </pre> **^^^^^Please note that this one should generly be 'Not Defined' unless the inject specifies you must include it** <br> <br> <pre> Minimum password age: 1 days </pre> <pre> Minimum password length: 8 characters </pre> <pre> Password must meet complexity requirements: Enabled </pre>
 | 4\. Take a screenshot | Take a focused screenshot of the Password Policy. 
 
-**After implementing the Password Policy, use the inject report in public-ccdc-resources/Injects entitled secure_password_guidelines.txt/.docx.**
+After implementing the Password Policy, use the inject report in **public-ccdc-resources/Injects** entitled **secure_password_guidelines.txt/.docx.**
