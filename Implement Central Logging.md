@@ -11,6 +11,20 @@ This playbook focuses on providing direction on how to effectively respond to th
 
 ## Sample Inject Response
 
+**Summary:** The following memo shares information regarding centralized logging using Splunk. This
+allows us to efficiently use the syslog and event log data produced by the servers, bringing all logging
+to one place.
+
+The server hosting the central logging is the Splunk server at local IP Address 'INSERT IP ADDRESS' and
+public IP Address 'INSERT IP ADDRESS'. It is running Splunk Enterprise version 9.2.4 (upgraded to patch a
+severe security vulnerability).
+
+The following screenshots display proper configuration of Splunk Forwarders on all devices, the accurate implementation of firewalls to allow for host connectivity to Splunk, and evidence that all devices are connected to Splunk. 
+
+
+Best regards, 
+
+Team XX
 
 
 
@@ -18,7 +32,8 @@ This playbook focuses on providing direction on how to effectively respond to th
 You will need to provide screenshots of the following items:
 1. Screenshot of the Firewall Configuration on Network Routers showing incoming and outgoing traffic allowed on ports 8000 and 9997.
 2. Provide separate screenshot of configuring forwarding on an example Linux server and Windows server. **In order to do so, you will have to manually run the splunk forwarding script on both devices, see step 3 above**
-4. Provide a screenshot of the test-message records from each server in the central repository. You can do so by searching <pre> index** this is a test </pre> in the search bar. This should display the test messages acquired from each host.
+3. Provide a screenshot of the test-message records from each server in the central repository. You can do so by searching <pre> index** this is a test </pre> in the search bar. This should display the test messages acquired from each host.
+4. Provide a screenshot of all of the hosts connected on the Splunk Dashboard.
 
 
 
