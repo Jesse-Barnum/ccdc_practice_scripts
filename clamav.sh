@@ -42,8 +42,6 @@ fi
 mkdir -p /var/log/clamav
 
 echo "Success! ClamAV is installed, running, and scheduled to scan daily."
-echo "Run `systemctl status clamav-daemon` on Ubuntu and 'systemctl status clamd@scan' on Fedora/Oracle"
-clamscan
 
 
 # 1. Define the job as a variable to keep the command clean
@@ -53,3 +51,7 @@ CRON_JOB="*/30 * * * * /usr/bin/clamscan -r --log=/var/log/clamav/scan.log --exc
 # We use 'crontab -l' to list current jobs, and grep to search for our specific command.
 # '2>/dev/null' suppresses the error message if the crontab is currently empty.
 (sudo crontab -l 2>/dev/null | grep -F "$CRON_JOB") || (sudo crontab -l 2>/dev/null; echo "$CRON_JOB") | sudo crontab -
+clamscan
+sudo crontab -l
+echo "Run `systemctl status clamav-daemon` on Ubuntu and 'systemctl status clamd@scan' on Fedora/Oracle"
+
