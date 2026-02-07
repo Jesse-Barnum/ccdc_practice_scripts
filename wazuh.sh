@@ -58,8 +58,8 @@ if [[ "$OS" == *"Debian"* || "$OS" == *"Ubuntu"* ]]; then
     echo "--- Updating package lists..."
     apt-get update
     
-    echo "--- Installing Wazuh Agent pointing to $WAZUH_MANAGER_IP..."
-    WAZUH_MANAGER="$WAZUH_MANAGER_IP" apt-get install -y wazuh-agent
+    echo "--- Installing Wazuh Agent 4.7 pointing to $WAZUH_MANAGER_IP..."
+    WAZUH_MANAGER="$WAZUH_MANAGER_IP" apt-get install -y --allow-downgrades wazuh-agent=4.7.2-1
 
 elif [[ "$OS" == *"CentOS"* || "$OS" == *"Red Hat"* || "$OS" == *"Rocky"* || "$OS" == *"AlmaLinux"* || "$OS" == *"Fedora"* ]]; then
     # ==========================================
@@ -94,8 +94,8 @@ EOF
     fi
 
     # 4. Install Agent
-    echo "--- Installing Wazuh Agent using $PKG_MANAGER..."
-    WAZUH_MANAGER="$WAZUH_MANAGER_IP" $PKG_MANAGER install -y wazuh-agent
+    echo "--- Installing Wazuh Agent 4.7 using $PKG_MANAGER..."
+    WAZUH_MANAGER="$WAZUH_MANAGER_IP" $PKG_MANAGER install -y wazuh-agent-4.7.2-1
 
 else
     echo "Error: Unsupported Operating System: $OS"
@@ -112,4 +112,4 @@ systemctl start wazuh-agent
 echo ""
 echo "--- Installation Complete! ---"
 echo "Verifying service status..."
-systemctl status wazuh-agent 
+systemctl status wazuh-agent
