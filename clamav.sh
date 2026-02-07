@@ -43,3 +43,4 @@ mkdir -p /var/log/clamav
 
 echo "Success! ClamAV is installed, running, and scheduled to scan daily."
 echo "Run `systemctl status clamav-daemon` on Ubuntu and 'systemctl status clamd@scan' on Fedora/Oracle"
+clamscan
