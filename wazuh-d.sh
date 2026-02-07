@@ -57,3 +57,6 @@ else
     echo "WARNING: Wazuh Manager service is not active. Check logs."
     systemctl status wazuh-manager --no-pager
 fi
+echo "Use these credentials when you log into the dashboard at https://$(hostname -I | awk '{print $1}')"
+grep -A 5 "User:" wazuh_install_log.txt
+systemctl status wazuh-manager
