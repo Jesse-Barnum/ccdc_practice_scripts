@@ -2,7 +2,15 @@
 # Run this as Administrator
 
 # --- Configuration ---
-$wazuhManagerIp = "192.168.220.240"
+# MODIFIED: Ask for IP Address
+$wazuhManagerIp = Read-Host -Prompt "Enter the Wazuh Manager IP Address"
+
+# Check if the user left it blank
+if ([string]::IsNullOrWhiteSpace($wazuhManagerIp)) {
+    Write-Warning "No IP address provided. The script cannot continue."
+    Break
+}
+
 $installerPath = "C:\Temp\wazuh-agent.msi"
 # Using a specific recent version ensures stability. You can update this version number if needed.
 $downloadUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.10.1-1.msi"
