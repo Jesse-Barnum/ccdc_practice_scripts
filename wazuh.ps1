@@ -48,7 +48,6 @@ catch {
 }
 
 # ---------------- INSTALL & ENROLL ----------------
-# We pass WAZUH_MANAGER here. The MSI handles enrollment and service creation automatically.
 Write-Host "Installing and enrolling Wazuh Agent..." -ForegroundColor Cyan
 
 $installArgs = "/i `"$installerPath`" /q /L*V `"$logPath`" WAZUH_MANAGER=`"$wazuhManagerIp`""
@@ -61,7 +60,6 @@ if ($process.ExitCode -ne 0) {
 }
 
 # ---------------- DYNAMIC PATH VERIFICATION ----------------
-# Logic: Find where it actually installed (handles both Program Files and x86)
 $agentPath = if (Test-Path "${env:ProgramFiles}\ossec-agent") {
     "${env:ProgramFiles}\ossec-agent"
 } elseif (Test-Path "${env:ProgramFiles(x86)}\ossec-agent") {
@@ -77,7 +75,6 @@ if (-not $agentPath) {
 Write-Host "Ensuring service is started..." -ForegroundColor Cyan
 $serviceName = "WazuhSvc"
 
-# Give the system a moment to register the service
 Start-Sleep -Seconds 2
 
 $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
