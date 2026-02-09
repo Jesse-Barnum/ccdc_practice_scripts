@@ -1,8 +1,8 @@
-# Wazuh Agent Installer for Windows
+# Wazuh Agent Installer for Windows (Version 4.7.5)
 # Run this as Administrator
 
 # --- Configuration ---
-# MODIFIED: Ask for IP Address
+# 1. Ask for IP Address
 $wazuhManagerIp = Read-Host -Prompt "Enter the Wazuh Manager IP Address"
 
 # Check if the user left it blank
@@ -12,24 +12,24 @@ if ([string]::IsNullOrWhiteSpace($wazuhManagerIp)) {
 }
 
 $installerPath = "C:\Temp\wazuh-agent.msi"
-# Using a specific recent version ensures stability. You can update this version number if needed.
-$downloadUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.10.1-1.msi"
+# UPDATED: Changed to 4.7.5 to match Manager version 4.7.x
+$downloadUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.7.5-1.msi"
 
-# 1. Check for Administrator Privileges
+# 2. Check for Administrator Privileges
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Warning "You do not have Administrator rights to run this script! Please re-run as Administrator."
     Break
 }
 
-# 2. Setup Workspace
+# 3. Setup Workspace
 # Create the Temp directory if it doesn't exist
 if (-not (Test-Path C:\Temp)) {
     New-Item -Path C:\Temp -ItemType Directory | Out-Null
 }
 
-# 3. Download the Agent
-Write-Host "--- Downloading Wazuh Agent..." -ForegroundColor Cyan
-# Force TLS 1.2 for older Windows Servers (2012/2016)
+# 4. Download the Agent (Version 4.7.5)
+Write-Host "--- Downloading Wazuh Agent 4.7.5..." -ForegroundColor Cyan
+# Force TLS 1.2 for older Windows Servers
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 try {
     Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath
@@ -39,7 +39,7 @@ catch {
     Break
 }
 
-# 4. Install the Agent
+# 5. Install the Agent
 Write-Host "--- Installing Wazuh Agent pointing to $wazuhManagerIp..." -ForegroundColor Cyan
 
 # Arguments:
@@ -58,7 +58,7 @@ if ($process.ExitCode -eq 0) {
     Write-Error "Installation failed with exit code $($process.ExitCode)"
 }
 
-# 5. Start the Service
+# 6. Start the Service
 Write-Host "--- Starting Wazuh Service..." -ForegroundColor Cyan
 Start-Service wazuhsvc
 Get-Service wazuhsvc
