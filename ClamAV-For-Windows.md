@@ -1,6 +1,4 @@
-
-
-Here is the markdown table formatting for your ClamAV installation and configuration steps.
+These instructions detail the fulfillment for the ClamAV installation inject, detailing the steps for installation and configuration. Please note that these steps must be done using an **Administrator Command Prompt (CMD), NOT POWERSHELL**.
 
 ## ClamAV Installation and Configuration
 
