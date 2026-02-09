@@ -12,10 +12,8 @@ copy .\conf_examples\clamd.conf.sample .\clamd.conf
 #.\freshclam.exe
 
 # Create a Scheduled Task for ClamAV to scan every 30 minutes
-#schtasks /create /tn "Clam_30min_scan" /tr "\"C:\Program Files\ClamAV\clamscan.exe\" -r -i --log=\"C:\temp\downloads_scan.log\" \"C:\Users\Administrator\Downloads\"" /sc minute /mo 30 /ru System /rl highest
+schtasks /create /tn "Clam_30min_scan" /tr "\"C:\Program Files\ClamAV\clamscan.exe\" -r -i --log=\"C:\temp\System_scan.log\" \"C:\System32\"" /sc minute /mo 30 /ru System /rl highest
 
-#Run a sample scan
-#clamscan.exe -r -i --bell --log="C:\temp\full_system_scan.log" "C:\Users\Administrator\Downloads"
 
 
 
