@@ -14,6 +14,6 @@ These instructions detail the fulfillment for the ClamAV installation inject, de
 | **5c** | Run `.\freshclam.exe` again to verify the database files are recognized. |
 | **6** | Perform a sample scan of your current directory by running the command `clamscan`. |
 | **7** | Open **Task Scheduler** to create a new task for clamscan. To create a new task, follow these steps: <br> 1. Select "Create Task" from the 'Actions' option on the right side of the application. <br> 2. Under the "General" tab, add a title to the task: 'ClamAV_Hourly_Scan'. <br> 3. Under the "Trigger" tab, select 'new'. Under the 'advanced setting' section of this task creation popup, select the checkbox next to 'Repeat Task Every'and set it to repeat every '1 hour' for the duration of 'indefinitely'. <br> 4. Under the "Actions" tab, select 'New'. Set the action to 'Start a Program' and set the program file path to "C:\Program Files\ClamAV\clamscan.exe". <br> 5. Select 'OK' to save the task.|
-| **8** | Show that the 'Scheduled Task' was created by running this command on Powershell:. |
+| **8** | Show that the 'Scheduled Task' was created by running this command on Powershell: <pre> Get-ScheduledTask</pre>. |
 
 ---
