@@ -13,6 +13,5 @@ These instructions detail the fulfillment for the ClamAV installation inject, de
 | **5b** | Copy those three files from your Downloads folder and paste them into: `C:\Program Files\ClamAV\database`. |
 | **5c** | Run `.\freshclam.exe` again to verify the database files are recognized. |
 | **6** | Perform a sample scan of your current directory by running the command `clamscan`. |
-| **7** | Open **Task Scheduler** to confirm that a task named **'Clam_30min_scan'** has been successfully created. |
-
+| **7** | Open **Task Scheduler** to create a new task for clamscan. To create a new task, follow these steps: <br> 1. |
 ---
