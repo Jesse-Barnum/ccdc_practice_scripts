@@ -78,5 +78,7 @@ done
 | Step | Description |
 | --- | --- |
 | **1** | 1. create a Cron Job `sudo crontab -e` <br> 2. Add this line: `*/5 * * * * /path-to-script/monitor.sh` |
-| **2** | 1. Verify the script accurately functions by changing a config file. I would suggest /etc/fuse.conf (just add any line). 2. Run the script: `sudo ./monitor.sh`. 3. Check the logs to verify it functioned correctly. `sudo tail -f /var/log/syslog | grep FIM`. If you see a `FIM ALERT: [FILE MODIFIED] Hash changed for $mod_file in $DIR` then you are good to go. Make sure to take a screenshot.   |
+| **2** | 1. Verify the script accurately functions by changing a config file. I would suggest /etc/fuse.conf (just add any line). <br> 2. Run the script: `sudo ./monitor.sh`. <br> 3. Check the logs to verify it functioned correctly. `sudo tail -f /var/log/syslog \| grep FIM` If you see a `FIM ALERT: [FILE MODIFIED] Hash changed for $mod_file in $DIR` then you are good to go. Make sure to take a screenshot.   |
+| **Troubleshooting** | If your scripts are not running, or getting a syntax error when running, run these commands: `sudo apt install dos2unix`, `dos2unix baseline.sh` `dos2unix monitor.sh` |
+
 
