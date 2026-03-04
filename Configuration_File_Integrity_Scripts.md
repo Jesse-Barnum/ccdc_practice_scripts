@@ -1,4 +1,5 @@
-These instructions detail the fulfillment for the ClamAV installation inject, detailing the steps for installation and configuration. Please note that these steps must be done using an **Administrator Command Prompt (CMD), NOT POWERSHELL**.
+# Configuration File Integrity
+
 
 ## File Integrity Baseline Script (baseline.sh)
 **This scripts creates a 'database' of the hashes of each of the config files in a specified directory. This database will be checked against when the other script is run to identify changes in the configuration file.**
@@ -25,9 +26,16 @@ find "$TARGET_DIR" -type f ! -name ".fim_database.txt" -exec sha256sum {} + > "$
 
 echo "[+] Baseline successfully saved to $DB_FILE"</pre>
 
+**Running this script:**
+Note, you will need to run this script for each directory you want to manage. 
+
+| Step | Description |
+| --- | --- |
+| **1** | 1. Run the script for each directory you want to monitor. You should certainly run the script for these directories: <br> `sudo ./baseline.sh /etc` <br> `sudo ./baseline.sh /bin` <br> `sudo ./baseline.sh /var/www/html` <br> Other examples of key directories may include... `/sbin` or `/etc/hosts` |
+| **Troubleshooting** | If your scripts are not running, or getting a syntax error when running, run these commands: `sudo apt install dos2unix`, `dos2unix baseline.sh` `dos2unix monitor.sh` 
 
 ## File Integrtiy Monitoring Script (monitor.sh)
-**This script checks the current hashes of each of the config files in /etc, /bin, and /var/www/html to verify that none of the files have changed. It will send an alert to /var/log/syslog or /var/log/messages if a file has been changed.** 
+**This script checks the current hashes of each of the config files in /etc, /bin, and /var/www/html to verify that none of the files have changed. It will send an alert to /var/log/syslog or /var/log/messages if a file has been changed. If you want to check more directories than the ones listed, edit the script and add the extra directories.** 
 
 <pre> #!/bin/bash
 # monitor_fim.sh - Compares current directory state against baseline and alerts via SYSLOG
@@ -78,7 +86,8 @@ done
 | Step | Description |
 | --- | --- |
 | **1** | 1. create a Cron Job `sudo crontab -e` <br> 2. Add this line: `*/5 * * * * /path-to-script/monitor.sh` |
-| **2** | 1. Verify the script accurately functions by changing a config file. I would suggest /etc/fuse.conf (just add any line). <br> 2. Run the script: `sudo ./monitor.sh`. <br> 3. Check the logs to verify it functioned correctly. `sudo tail -f /var/log/syslog \| grep FIM` If you see a `FIM ALERT: [FILE MODIFIED] Hash changed for $mod_file in $DIR` then you are good to go. Make sure to take a screenshot.   |
+| **2** | 1. Verify the script accurately functions by changing a config file. I would suggest /etc/fuse.conf (just add any line). <br> 2. Run the script: `sudo ./monitor.sh`.   |
+| **3** | **Check the logs to verify it functioned correctly. `sudo tail -f /var/log/syslog \| grep FIM` If you see a `FIM ALERT: [FILE MODIFIED] Hash changed for $mod_file in $DIR` then you are good to go. Make sure to take a screenshot.**|
 | **Troubleshooting** | If your scripts are not running, or getting a syntax error when running, run these commands: `sudo apt install dos2unix`, `dos2unix baseline.sh` `dos2unix monitor.sh` |
 
 
