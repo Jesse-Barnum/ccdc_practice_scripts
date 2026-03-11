@@ -35,3 +35,32 @@ void camera_capture_data(uint8_t *buf, size_t bufsize) {
     remove(tmp_file_name);
     free(full_command);
 }
+
+void camera_save_to_file(uint8_t *buf, size_t bufsize, char *filename) {
+    if (buf == NULL || filename == NULL) {
+        return;
+    }
+
+    // 1. Open the file for writing
+    // O_WRONLY: Write only
+    // O_CREAT: Create if it doesn't exist
+    // O_TRUNC: Overwrite if it does exist
+    // 0644: Standard permissions (owner can read/write, others can read)
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    
+    if (fd == -1) {
+        perror("Error opening file for saving");
+        return;
+    }
+
+    // 2. Write the entire buffer (Header + Pixels)
+    ssize_t bytes_written = write(fd, buf, bufsize);
+
+    // 3. Verify the write was successful
+    if (bytes_written != (ssize_t)bufsize) {
+        fprintf(stderr, "Warning: Only wrote %ld of %zu bytes\n", bytes_written, bufsize);
+    }
+
+    // 4. Close the file descriptor
+    close(fd);
+}
