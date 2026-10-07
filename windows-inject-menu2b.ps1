@@ -1,3 +1,11 @@
+
+function Invoke-WazuhAgent {
+    $managerIp = if ([string]::IsNullOrWhiteSpace($WazuhManagerIp)) {
+        Read-Host 'Enter the Wazuh Manager IP Address'
+    } else {
+        $WazuhManagerIp
+    }
+    if ([string]::IsNullOrWhiteSpace($managerIp)) {
         throw 'No Wazuh Manager IP was provided.'
     }
 
@@ -61,7 +69,7 @@
 
 $actions = @(
     [pscustomobject]@{ Id = 1; Name = 'Install Windows login banner'; Description = 'Set the registry legal notice' },
-    [pscustomobject]@{ Id = 2; Name = 'Configure ClamAV'; Description = 'Create and normalize ClamAV configuration files' },
+    [pscustomobject]@{ Id = 2; Name = 'Install and configure ClamAV'; Description = 'Install, initialize databases, scan, and create hourly task' },
     [pscustomobject]@{ Id = 3; Name = 'Install Wazuh Agent'; Description = 'Download, enroll, and start the Wazuh Windows agent' }
 )
 
