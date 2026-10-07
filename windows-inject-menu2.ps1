@@ -1,96 +1,113 @@
-<#
-.SYNOPSIS
-    Standalone Windows CCDC inject menu.
+        throw 'No Wazuh Manager IP was provided.'
+    }
 
-.DESCRIPTION
-    This file embeds the Windows injects from the uploaded injects archive:
-    login banner, ClamAV configuration, and Wazuh Agent installation.
-#>
+    if ($DryRun) {
+        Write-Host "DRY RUN: would download and install Wazuh Agent 4.7.5 enrolled to $managerIp." -ForegroundColor Yellow
+        return
+    }
 
-[CmdletBinding()]
-param(
-    [int]$Inject = 0,
-    [switch]$List,
-    [switch]$DryRun,
-    [string]$ClamAVPath = 'C:\Program Files\ClamAV',
-    [string]$WazuhManagerIp
+    Assert-Administrator
+    $wazuhVersion = '4.7.5'
+    $downloadUrl = "https://packages.wazuh.com/4.x/windows/wazuh-agent-$wazuhVersion-1.msi"
+    $tempFolder = 'C:\Temp'
+    $installerPath = Join-Path $tempFolder 'wazuh-agent.msi'
+    $logPath = Join-Path $tempFolder 'wazuh-install.log'
+
+    if (-not (Test-Path -LiteralPath $tempFolder)) {
+        New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
+    }
+
+    Write-Host "Downloading Wazuh Agent $wazuhVersion..." -ForegroundColor Cyan
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    try {
+        Start-BitsTransfer -Source $downloadUrl -Destination $installerPath -ErrorAction Stop
+    } catch {
+        Write-Host 'BITS transfer failed; falling back to Invoke-WebRequest.' -ForegroundColor Yellow
+        try {
+            Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing -ErrorAction Stop
+        } catch {
+            throw 'Failed to download the Wazuh Agent MSI.'
+        }
+    }
+
+    $installArgs = '/i "{0}" /q /L*V "{1}" WAZUH_MANAGER="{2}"' -f $installerPath, $logPath, $managerIp
+    $process = Start-Process -FilePath 'msiexec.exe' -ArgumentList $installArgs -Wait -PassThru
+    if ($process.ExitCode -ne 0) {
+        throw "MSI installation failed with exit code $($process.ExitCode). Check $logPath"
+    }
+
+    $agentPath = $null
+    $programFiles = [Environment]::GetEnvironmentVariable('ProgramFiles')
+    $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+    if ($programFiles -and (Test-Path -LiteralPath (Join-Path $programFiles 'ossec-agent'))) {
+        $agentPath = Join-Path $programFiles 'ossec-agent'
+    } elseif ($programFilesX86 -and (Test-Path -LiteralPath (Join-Path $programFilesX86 'ossec-agent'))) {
+        $agentPath = Join-Path $programFilesX86 'ossec-agent'
+    }
+    if (-not $agentPath) {
+        throw 'Wazuh installation directory was not found after MSI installation.'
+    }
+
+    Start-Sleep -Seconds 2
+    $service = Get-Service -Name 'WazuhSvc' -ErrorAction SilentlyContinue
+    if (-not $service) {
+        throw "Wazuh service was not found. Check $logPath"
+    }
+    if ($service.Status -ne 'Running') {
+        Start-Service -Name 'WazuhSvc'
+    }
+    Write-Host 'Wazuh Agent is installed and running.' -ForegroundColor Green
+}
+
+$actions = @(
+    [pscustomobject]@{ Id = 1; Name = 'Install Windows login banner'; Description = 'Set the registry legal notice' },
+    [pscustomobject]@{ Id = 2; Name = 'Configure ClamAV'; Description = 'Create and normalize ClamAV configuration files' },
+    [pscustomobject]@{ Id = 3; Name = 'Install Wazuh Agent'; Description = 'Download, enroll, and start the Wazuh Windows agent' }
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-function Test-Administrator {
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+function Show-Menu {
+    Write-Host ''
+    Write-Host 'Windows CCDC Injects' -ForegroundColor Cyan
+    Write-Host '====================' -ForegroundColor Cyan
+    foreach ($action in $actions) {
+        Write-Host ('[{0}] {1} - {2}' -f $action.Id, $action.Name, $action.Description)
+    }
+    Write-Host '[Q] Quit'
+    Write-Host ''
 }
 
-function Assert-Administrator {
-    if (-not (Test-Administrator)) {
-        throw 'This inject must be run from an elevated PowerShell session.'
+function Invoke-SelectedInject {
+    param([int]$Number)
+
+    switch ($Number) {
+        1 { Invoke-LoginBanner }
+        2 { Invoke-ClamAVConfiguration }
+        3 { Invoke-WazuhAgent }
+        default { throw "Unknown Windows inject: $Number" }
     }
 }
 
-function Invoke-LoginBanner {
-    if ($DryRun) {
-        Write-Host 'DRY RUN: would set the Windows legal notice login banner.' -ForegroundColor Yellow
-        return
+try {
+    if ($List) {
+        Show-Menu
+        exit 0
     }
 
-    Assert-Administrator
-    $bannerText = @"
-******** WARNING ********
-This system is the property of a private organization and is for authorized use only. By accessing this system, users agree to comply with the company's Acceptable Use Policy.
+    $selection = $Inject
+    while ($selection -eq 0) {
+        Show-Menu
+        $answer = Read-Host 'Select an inject number'
+        if ($answer -match '^[qQ]$') { exit 0 }
+        if ($answer -match '^\d+$' -and [int]$answer -ge 1 -and [int]$answer -le $actions.Count) {
+            $selection = [int]$answer
+        } else {
+            Write-Warning 'Invalid selection.'
+        }
+    }
 
-All activities on this system may be monitored, recorded, and disclosed to authorized personnel for security purposes. There is no expectation of privacy while using this system.
-
-Unauthorized or improper use may result in disciplinary action or legal penalties. By continuing to use this system you indicate your awareness of and consent to these terms and conditions of use.
-
-**************************
-"@
-
-    $registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
-    Set-ItemProperty -Path $registryKey -Name 'legalnoticecaption' -Value 'WARNING'
-    Set-ItemProperty -Path $registryKey -Name 'legalnoticetext' -Value $bannerText
-    Write-Host 'Login banner installed successfully.' -ForegroundColor Green
+    Invoke-SelectedInject -Number $selection
+} catch {
+    Write-Error $_
+    exit 1
 }
 
-function Invoke-ClamAVConfiguration {
-    if ($DryRun) {
-        Write-Host "DRY RUN: would configure ClamAV under $ClamAVPath and prepare a 30-minute scan task." -ForegroundColor Yellow
-        return
-    }
-
-    Assert-Administrator
-    if (-not (Test-Path -LiteralPath $ClamAVPath -PathType Container)) {
-        throw "ClamAV directory not found: $ClamAVPath"
-    }
-
-    $examples = Join-Path $ClamAVPath 'conf_examples'
-    $freshclamSample = Join-Path $examples 'freshclam.conf.sample'
-    $clamdSample = Join-Path $examples 'clamd.conf.sample'
-    if (-not (Test-Path -LiteralPath $freshclamSample) -or -not (Test-Path -LiteralPath $clamdSample)) {
-        throw "ClamAV configuration samples were not found under $examples"
-    }
-
-    $freshclamConfig = Join-Path $ClamAVPath 'freshclam.conf'
-    $clamdConfig = Join-Path $ClamAVPath 'clamd.conf'
-    Copy-Item -LiteralPath $freshclamSample -Destination $freshclamConfig -Force
-    Copy-Item -LiteralPath $clamdSample -Destination $clamdConfig -Force
-
-    (Get-Content -LiteralPath $freshclamConfig) -replace '^Example', '#Example' |
-        Set-Content -LiteralPath $freshclamConfig
-    (Get-Content -LiteralPath $clamdConfig) -replace '^Example', '#Example' |
-        Set-Content -LiteralPath $clamdConfig
-
-    Write-Host 'ClamAV configuration files created and Example directives disabled.' -ForegroundColor Green
-    Write-Host 'The uploaded source contained the scheduled-task command as a comment; review and enable it if required.'
-}
-
-function Invoke-WazuhAgent {
-    $managerIp = if ([string]::IsNullOrWhiteSpace($WazuhManagerIp)) {
-        Read-Host 'Enter the Wazuh Manager IP Address'
-    } else {
-        $WazuhManagerIp
-    }
-    if ([string]::IsNullOrWhiteSpace($managerIp)) {
