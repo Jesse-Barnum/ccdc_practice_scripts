@@ -14,10 +14,10 @@ chmod +x "$SCRIPT_PATH"
 
 # Check if the cron job already exists in the root crontab
 if ! crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
-    echo -e "\e[32mScheduled task not found. Installing cron job to run every 15 minutes...\e[0m"
+    echo -e "\e[32mScheduled task not found. Installing cron job to run every 3 minutes...\e[0m"
     
     # Append the job, redirecting output to null so cron doesn't email the instruction block
-    (crontab -l 2>/dev/null; echo "*/15 * * * * $SCRIPT_PATH > /dev/null 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "*/3 * * * * $SCRIPT_PATH > /dev/null 2>&1") | crontab -
     
     echo -e "\e[32mInstallation complete. The script will now run automatically.\e[0m"
 fi
@@ -31,13 +31,13 @@ df -P | grep '^/dev/' | while read -r line; do
     syslogLevel=""
 
     if [ "$percentUsed" -ge 90 ]; then
-        alertMessage="CRITICAL: Drive $mountPoint is currently at ${percentUsed}% used capacity! Immediate action is required to free up space."
+        alertMessage="CRITICAL: Drive $mountPoint is currently at ${percentUsed}% used capacity! This is above the 90% threshold! Immediate action is required to free up space."
         syslogLevel="emerg"
     elif [ "$percentUsed" -ge 80 ]; then
-        alertMessage="WARNING: Drive $mountPoint is currently at ${percentUsed}% used capacity. Please consider freeing up space soon."
+        alertMessage="WARNING: Drive $mountPoint is currently at ${percentUsed}% used capacity. This is above the 80% threshold! Please consider freeing up space soon."
         syslogLevel="warning"
     elif [ "$percentUsed" -ge 50 ]; then
-        alertMessage="NOTICE: Drive $mountPoint is currently at ${percentUsed}% used capacity."
+        alertMessage="NOTICE: Drive $mountPoint is currently at ${percentUsed}% used capacity. This is above the 50% threshold!"
         syslogLevel="info"
     fi
 
