@@ -34,9 +34,11 @@ foreach ($disk in $disks) {
     $freeSpace =$disk.FreeSpace
 
     if ($totalSpace -gt 0) {
-        $usedSpace =$totalSpace - $freeSpace$percentUsed = [math]::Round(($usedSpace / $totalSpace) * 100, 2)
+        $usedSpace =$totalSpace - $freeSpace
+        $percentUsed = [math]::Round(($usedSpace / $totalSpace) * 100, 2)
 
-        $alertMessage = $null$icon = [System.Windows.Forms.MessageBoxIcon]::Information
+        $alertMessage = $null
+        $icon = [System.Windows.Forms.MessageBoxIcon]::Information
 
         if ($percentUsed -ge 90) {$alertMessage = "CRITICAL: Drive $driveLetter is currently at$percentUsed% used capacity, above the 90% threshold! Immediate action is required to free up space."
             $icon = [System.Windows.Forms.MessageBoxIcon]::Error
