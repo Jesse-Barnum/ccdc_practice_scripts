@@ -28,7 +28,7 @@ if (-not (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue)) 
 Add-Type -AssemblyName System.Windows.Forms
 $disks = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType = 3"
 
-foreach ($disk in$disks) {
+foreach ($disk in $disks) {
     $driveLetter =$disk.DeviceID
     $totalSpace =$disk.Size
     $freeSpace =$disk.FreeSpace
