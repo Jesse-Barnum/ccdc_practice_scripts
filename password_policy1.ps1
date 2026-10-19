@@ -51,7 +51,7 @@ ResetLockoutCount = 60
 LockoutDuration = 60
 "@
 
-    $secpol \vert{} Out-File -FilePath$templatePath -Encoding Unicode
+    $secpol | Out-File -FilePath $templatePath -Encoding Unicode
     
     # Merge the custom template into the active local security database
     secedit.exe /configure /db "$env:windir\security\database\secedit.sdb" /cfg $templatePath /areas SECURITYPOLICY /quiet
