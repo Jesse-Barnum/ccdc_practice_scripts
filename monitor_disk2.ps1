@@ -17,7 +17,7 @@ if (-not (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue)) 
         $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 3)
         $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive
 
-        Register-ScheduledTask -TaskName $TaskName -Action$action -Trigger $trigger -Principal$principal | Out-Null
+        Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal | Out-Null
         Write-Host "Installation complete." -ForegroundColor Green
     } else {
         Write-Host "Warning: Could not determine script path. Please save the script to a file before running." -ForegroundColor Yellow
@@ -40,13 +40,13 @@ foreach ($disk in $disks) {
         $alertMessage = $null
         $icon = [System.Windows.Forms.MessageBoxIcon]::Information
 
-        if ($percentUsed -ge 90) {$alertMessage = "CRITICAL: Drive $driveLetter is currently at$percentUsed% used capacity, above the 90% threshold! Immediate action is required to free up space."
+        if ($percentUsed -ge 90) {$alertMessage = "CRITICAL: Drive $driveLetter is currently at $percentUsed% used capacity, above the 90% threshold! Immediate action is required to free up space."
             $icon = [System.Windows.Forms.MessageBoxIcon]::Error
         }
-        elseif ($percentUsed -ge 80) {$alertMessage = "WARNING: Drive $driveLetter is currently at$percentUsed% used capacity, above the 80% threshold. Please consider freeing up space soon."
+        elseif ($percentUsed -ge 80) {$alertMessage = "WARNING: Drive $driveLetter is currently at $percentUsed% used capacity, above the 80% threshold. Please consider freeing up space soon."
             $icon = [System.Windows.Forms.MessageBoxIcon]::Warning
         }
-        elseif ($percentUsed -ge 50) {$alertMessage = "NOTICE: Drive $driveLetter is currently at$percentUsed% used capacity, above the 50% threshold."
+        elseif ($percentUsed -ge 50) {$alertMessage = "NOTICE: Drive $driveLetter is currently at $percentUsed% used capacity, above the 50% threshold."
             $icon = [System.Windows.Forms.MessageBoxIcon]::Information
         }
 
