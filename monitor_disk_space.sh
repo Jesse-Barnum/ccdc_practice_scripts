@@ -63,5 +63,8 @@ if [ -t 1 ]; then
     echo -e "To capture screenshot evidence of the syslog alert for the inject:"
     echo -e "  \e[33msudo grep \"CCDC_Disk_Monitor\" /var/log/syslog\e[0m"
     echo -e "  *(Use /var/log/messages instead on RHEL/CentOS/Fedora systems)"
+    echo -e ""
+    echo -e "To capture screenshot evidence of the CronJob set up properly for the inject:"
+    echo -e "  \e[33msudo crontab -l\e[0m"
     echo -e "\e[36m=======================================================================\e[0m\n"
 fi
