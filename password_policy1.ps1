@@ -57,7 +57,7 @@ LockoutDuration = 60
     secedit.exe /configure /db "$env:windir\security\database\secedit.sdb" /cfg $templatePath /areas SECURITYPOLICY /quiet
     
     # Force the local machine to immediately apply the database changes
-    gpupdate /force /quiet
+    gpupdate /force
     Write-Host "Local policy successfully updated." -ForegroundColor Green
     
     # Clean up the temporary template
