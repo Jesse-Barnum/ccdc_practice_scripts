@@ -8,7 +8,7 @@ foreach ($user in $Authorized) { Net user $user "SecurePass123!" /add }
 Net localgroup administrators Phineas /add; Net localgroup administrators Ferb /add
 
 Net user guest /active:yes                                                  # Vuln 1: Guest Active
-Net user Doofensmirtz "CurseYouPerryThePlatypus!" /add                      
+Net user Doofensmirtz "CurseYouPerry!" /add                      
 Net localgroup administrators Doofensmirtz /add                             # Vuln 2: Rogue Admin
 Net user Norm "RobotPass!" /add                                             # Vuln 3: Rogue Local User
 Net localgroup administrators Candice /add                                  # Vuln 4: Misconfigured Auth User
