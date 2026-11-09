@@ -1,0 +1,18 @@
+# Forensics Checks
+$Q1Path = "C:\Users\Public\Desktop\Forensics\Q1.txt"
+if (Test-Path $Q1Path) {
+    $Ans1 = (Get-Content $Q1Path -Raw).Trim()
+    if ($Ans1 -match "(?i)inator\.exe") { $Score++; $Html += "<li class='g'>[+] Forensics Q1 Correct</li>" }
+}
+
+$Q2Path = "C:\Users\Public\Desktop\Forensics\Q2.txt"
+if (Test-Path $Q2Path) {
+    $Ans2 = (Get-Content $Q2Path -Raw).Trim()
+    if ($Ans2 -match "4444") { $Score++; $Html += "<li class='g'>[+] Forensics Q2 Correct</li>" }
+}
+
+$Q3Path = "C:\Users\Public\Desktop\Forensics\Q3.txt"
+if (Test-Path $Q3Path) {
+    $Ans3 = (Get-Content $Q3Path -Raw).Trim()
+    if ($Ans3 -match "(?i)Administrator") { $Score++; $Html += "<li class='g'>[+] Forensics Q3 Correct</li>" }
+}
