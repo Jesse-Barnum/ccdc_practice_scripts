@@ -1,0 +1,181 @@
+# ==========================================
+# O.W.C.A. UNIFIED SCORING_ENGINE.ps1
+# ==========================================
+$DesktopPath = "$env:PUBLIC\Desktop\ScoreReport.html"
+$MaxScore = 58
+
+# Helper function to keep the logic clean and match your blind-scoring output
+function Evaluate-Check {
+    param([bool]$IsSecure, [string]$SuccessMsg)
+    if ($IsSecure) {
+        $script:Score++
+        $script:Html += "<li class='g'>[+] $SuccessMsg</li>"
+    }
+}
+
+while ($true) {
+    $script:Score = 0
+    $script:Penalties = 0
+    $Timestamp = Get-Date -Format "HH:mm:ss"
+    
+    $script:Html = "<html><head><style>body{font-family: Arial; background-color: #1e1e1e; color: #d4d4d4;} .g{color: #00ff00;} .r{color: #ff0000;}</style></head><body>"
+    $script:Html += "<h2>O.W.C.A. Windows Advanced Scoring</h2>"
+    $script:Html += "<p style='color: #888; font-size: 14px;'>Last Updated: <b>$Timestamp</b><br>"
+    $script:Html += "Next check in: <b id='timer'>30</b> seconds</p>"
+    $script:Html += "<script>var t=30; setInterval(function(){t--; document.getElementById('timer').innerText=t; if(t<=0){document.getElementById('timer').innerText='Refreshing...'; location.reload();}}, 1000);</script>"
+    $script:Html += "<ul>"
+
+
+    # ==========================================
+    # ORIGINAL 21 CHECKS (From Screenshot)
+    # ==========================================
+    
+    # Accounts
+    Evaluate-Check ((Get-WmiObject Win32_UserAccount -Filter "Name='Guest'").Disabled) "Guest disabled"
+    Evaluate-Check ((Get-WmiObject Win32_UserAccount -Filter "Name='Administrator'").Disabled) "Default Admin disabled"
+    Evaluate-Check (-not (Get-WmiObject Win32_UserAccount -Filter "Name='Doofensmirtz'")) "Doofensmirtz removed"
+    Evaluate-Check (-not (Get-WmiObject Win32_UserAccount -Filter "Name='Norm'")) "Norm removed"
+    Evaluate-Check (-not ((Get-LocalGroupMember -Group "Administrators" -ErrorAction SilentlyContinue).Name -match "Candice")) "Candice demoted"
+
+    # Policies
+    secedit /export /cfg C:\temp_secpol.cfg | Out-Null
+    $Pol = Get-Content C:\temp_secpol.cfg -ErrorAction SilentlyContinue
+    Evaluate-Check ($Pol -match "PasswordComplexity = 1") "Password complexity enforced"
+    Evaluate-Check ($Pol -match "MinimumPasswordLength = 14") "Secure password length set"
+    Evaluate-Check (-not ($Pol -match "LockoutBadCount = 0")) "Account lockout enabled"
+    Remove-Item C:\temp_secpol.cfg -ErrorAction SilentlyContinue
+
+    # Network
+    Evaluate-Check (((Get-NetFirewallProfile -Profile Domain,Public,Private).Enabled -eq $true).Count -eq 3) "Firewall active"
+    Evaluate-Check (-not (Get-NetFirewallRule -DisplayName "Inator-Uplink" -ErrorAction SilentlyContinue)) "Malicious rule removed"
+    Evaluate-Check ((Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "UserAuthentication" -ErrorAction SilentlyContinue) -eq 1) "RDP NLA Enforced"
+    Evaluate-Check ((Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" -Name "UseLogonCredential" -ErrorAction SilentlyContinue) -eq 0) "WDigest disabled"
+
+    # OS & Files
+    Evaluate-Check ((Get-MpPreference).DisableRealtimeMonitoring -eq $false) "Defender enabled"
+    Evaluate-Check ((Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -ErrorAction SilentlyContinue) -eq 1) "UAC enabled"
+    Evaluate-Check (-not (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "Doof-Update" -ErrorAction SilentlyContinue)) "Malicious Run key removed"
+    Evaluate-Check (-not (Get-ScheduledTask -TaskName "TriStateAreaTakeover" -ErrorAction SilentlyContinue)) "Scheduled task removed"
+    Evaluate-Check (-not (Test-Path "C:\Windows\System32\inator.exe")) "Malicious executable deleted"
+    Evaluate-Check (-not (Test-Path "C:\Users\Public\Desktop\LoveHandel_Song.mp3")) "Prohibited media removed"
+
+    # Forensics
+    $FDir = "C:\Users\Public\Desktop\Forensics"
+    Evaluate-Check ((Get-Content "$FDir\Q1_Answer.txt" -ErrorAction SilentlyContinue) -match "Doofensmirtz") "Forensics Q1 Correct"
+    Evaluate-Check ((Get-Content "$FDir\Q2_Answer.txt" -ErrorAction SilentlyContinue) -match "inator.exe") "Forensics Q2 Correct"
+    Evaluate-Check ((Get-Content "$FDir\Q3_Answer.txt" -ErrorAction SilentlyContinue) -match "203.0.113.85") "Forensics Q3 Correct"
+
+
+    # ==========================================
+    # 37 NEW ADVANCED CONFIGURATION CHECKS
+    # ==========================================
+
+    # --- IIS & FTP ---
+    $dirBrowse = (Get-WebConfigurationProperty -Filter /system.webServer/directoryBrowse -Name enabled -ErrorAction SilentlyContinue).Value
+    Evaluate-Check ($dirBrowse -eq $false -or $null -eq $dirBrowse) "IIS Directory Browsing Disabled"
+    
+    $webDav = (Get-WebConfigurationProperty -Filter /system.webServer/webdav/authoring -Name enabled -ErrorAction SilentlyContinue).Value
+    Evaluate-Check ($webDav -eq $false -or $null -eq $webDav) "IIS WebDAV Disabled"
+    
+    $appPool = (Get-ItemProperty "IIS:\AppPools\DefaultAppPool" -ErrorAction SilentlyContinue).processModel.identityType
+    Evaluate-Check ($appPool -ne "LocalSystem") "IIS AppPool Identity Hardened"
+    
+    $ftpIso = (Get-WebConfigurationProperty -Filter /system.applicationHost/sites/siteDefaults/ftpServer/userIsolation -Name mode -ErrorAction SilentlyContinue).Value
+    Evaluate-Check ($ftpIso -ne "None") "FTP User Isolation Enforced"
+
+    # --- UNNECESSARY SERVICES & APPS ---
+    $winrm = (Get-ItemPropertyValue "WSMan:\localhost\Service\AllowUnencrypted" -ErrorAction SilentlyContinue)
+    Evaluate-Check ($winrm -ne "true") "WinRM Cleartext Disabled"
+
+    Evaluate-Check (-not (Test-Path "C:\Program Files\TightVNC\tvnserver.exe")) "TightVNC Removed"
+    Evaluate-Check (-not (Test-Path "C:\Program Files\Wireshark\wireshark.exe")) "Wireshark Removed"
+    Evaluate-Check (-not (Test-Path "C:\Program Files\Npcap\npcap.sys")) "Npcap Removed"
+    Evaluate-Check (-not (Test-Path "C:\Program Files\Webex\webex.exe")) "WebEx Removed"
+    Evaluate-Check (-not (Test-Path "C:\Program Files (x86)\Steam\steam.exe")) "Steam Client Removed"
+
+    Evaluate-Check ((Get-Service -Name Spooler -ErrorAction SilentlyContinue).Status -ne "Running") "Print Spooler Disabled"
+    Evaluate-Check ((Get-Service -Name RemoteAccess -ErrorAction SilentlyContinue).Status -ne "Running") "RRAS Disabled"
+    Evaluate-Check ((Get-Service -Name upnphost -ErrorAction SilentlyContinue).Status -ne "Running") "UPnP Device Host Disabled"
+    Evaluate-Check ((Get-Service -Name SNMP -ErrorAction SilentlyContinue).Status -ne "Running") "SNMP Service Disabled"
+
+    # --- POLICIES & ACCOUNTS ---
+    $netAcc = (net accounts)
+    Evaluate-Check (-not ($netAcc -match "Maximum password age \(days\):\s*Unlimited")) "Password Expiration Time Configured"
+    Evaluate-Check (-not ($netAcc -match "Minimum password age \(days\):\s*0")) "Minimum Password Age Configured"
+    Evaluate-Check (-not ($netAcc -match "Length of password history maintained:\s*0")) "Password History Enforced"
+
+    $ntlm = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name "LmCompatibilityLevel" -ErrorAction SilentlyContinue
+    Evaluate-Check ($ntlm -ge 3 -or $null -eq $ntlm) "NTLMv1 Disabled"
+
+    $restrictAnon = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name "RestrictAnonymous" -ErrorAction SilentlyContinue
+    Evaluate-Check ($restrictAnon -gt 0 -or $null -eq $restrictAnon) "Null Sessions Blocked"
+
+    $nullPipes = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Services\LanManServer\Parameters" -Name "NullSessionPipes" -ErrorAction SilentlyContinue
+    Evaluate-Check (-not ($nullPipes -contains "srvsvc" -or $nullPipes -contains "browser")) "Anonymous Named Pipes Restricted"
+    
+    $cad = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "DisableCAD" -ErrorAction SilentlyContinue
+    Evaluate-Check ($cad -eq 0 -or $null -eq $cad) "CTRL+ALT+DEL Enforced"
+
+    # --- FIREWALL & NETWORKING ---
+    $icmp = Get-NetFirewallRule -DisplayName "Allow ICMP In" -ErrorAction SilentlyContinue
+    Evaluate-Check ($null -eq $icmp -or $icmp.Enabled -ne "True") "ICMP Echo Globally Blocked"
+
+    $rdpRule = Get-NetFirewallRule -DisplayGroup "Remote Desktop" -ErrorAction SilentlyContinue | Get-NetFirewallAddressFilter
+    Evaluate-Check (-not ($rdpRule.RemoteAddress -contains "Any")) "RDP Scope Restricted"
+
+    $subnetRule = Get-NetFirewallRule -DisplayName "Local Subnet Bypass" -ErrorAction SilentlyContinue
+    Evaluate-Check ($null -eq $subnetRule -or $subnetRule.Enabled -ne "True") "Local Subnet Firewall Bypass Removed"
+
+    $hosts = Get-Content -Path "C:\Windows\System32\drivers\etc\hosts" -ErrorAction SilentlyContinue
+    Evaluate-Check (-not ($hosts -match "update.microsoft.com")) "Hosts File Poisoning Fixed"
+
+    # --- SYSTEM SETTINGS & ARTIFACTS ---
+    $clip = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" -Name "fDisableClip" -ErrorAction SilentlyContinue
+    Evaluate-Check ($clip -eq 1 -or $null -eq $clip) "RDP Clipboard Redirection Disabled"
+
+    $wsh = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name "Enabled" -ErrorAction SilentlyContinue
+    Evaluate-Check ($wsh -eq 0 -or $null -eq $wsh) "Windows Script Host Disabled"
+
+    $cmd = Get-ItemPropertyValue -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name "DisableCMD" -ErrorAction SilentlyContinue
+    Evaluate-Check ($cmd -eq 0 -or $null -eq $cmd) "Command Prompt Access Restored"
+
+    $tempAcl = (Get-Acl "C:\Windows\Temp").Access | Where-Object { $_.IdentityReference -match "Users" -and $_.FileSystemRights -match "ExecuteFile" }
+    Evaluate-Check ($null -eq $tempAcl) "Temp Directory Executables Blocked"
+
+    Evaluate-Check (-not (Test-Path "C:\Users\Public\Desktop\SAM.bak")) "SAM Backup File Removed"
+
+    $adminShare = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Services\LanmanServer\Parameters" -Name "AutoShareWks" -ErrorAction SilentlyContinue
+    Evaluate-Check ($adminShare -eq 0 -or $null -eq $adminShare) "Admin Shares Restricted"
+
+    $hideExt = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -ErrorAction SilentlyContinue
+    Evaluate-Check ($hideExt -eq 0 -or $null -eq $hideExt) "Known File Extensions Revealed"
+
+    $clearPage = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "ClearPageFileAtShutdown" -ErrorAction SilentlyContinue
+    Evaluate-Check ($clearPage -eq 1) "Pagefile Cleared on Shutdown"
+
+    $rdpCert = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name "SecurityLayer" -ErrorAction SilentlyContinue
+    Evaluate-Check ($rdpCert -ne 0) "RDP Certificate Checking Enforced"
+
+    $ipRoute = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters" -Name "DisableIPSourceRouting" -ErrorAction SilentlyContinue
+    Evaluate-Check ($ipRoute -eq 2) "IPv4 Source Routing Disabled"
+
+    $ldap = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\ldap" -Name "LDAPClientIntegrity" -ErrorAction SilentlyContinue
+    Evaluate-Check ($ldap -ne 0) "Cleartext LDAP Authentication Blocked"
+
+    Evaluate-Check (-not (Test-Path "C:\Users\Public\Desktop\StickyNote_Passwords.txt")) "Plaintext Passwords Removed from Desktop"
+
+
+    # ==========================================
+    # SLA CHECKS
+    # ==========================================
+    if ((Get-Service -Name W3SVC -ErrorAction SilentlyContinue).Status -ne 'Running') {
+        $script:Penalties += 3
+        $script:Html += "<li class='r'>[-] PENALTY: Web Server SLA is DOWN</li>"
+    }
+
+    $script:Html += "</ul>"
+    $script:Html += "<h3>Score: $script:Score / $MaxScore | Penalties: -$script:Penalties</h3></body></html>"
+    
+    $script:Html | Out-File $DesktopPath -Force
+    Start-Sleep -Seconds 30
+}
