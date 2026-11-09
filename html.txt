@@ -1,7 +1,0 @@
-$Timestamp = Get-Date -Format "HH:mm:ss"
-    $Html = "<html><head><style>body{font-family: Arial;} .g{color: green;} .r{color: red;}</style></head><body>"
-    $Html += "<h2>O.W.C.A. Windows Scoring</h2>"
-    $Html += "<p style='color: #666; font-size: 14px;'>Last Updated: <b>$Timestamp</b><br>"
-    $Html += "Next check in: <b id='timer'>30</b> seconds</p>"
-    $Html += "<script>var t=30; setInterval(function(){t--; document.getElementById('timer').innerText=t; if(t<=0){document.getElementById('timer').innerText='Refreshing...'; location.reload();}}, 1000);</script>"
-    $Html += "<ul>"
