@@ -29,8 +29,7 @@
 
 ### 📝 Forensics & Critical SLAs (5 Points)
 
-16. **IIS Service SLA:** World Wide Web Publishing Service (`W3SVC`) is actively running.
-17. **IIS Port 80 SLA:** Server is actively listening and responding on Port 80.
+16. **Remove LoveHandel_song:** World Wide Web Publishing Service (`W3SVC`) is actively running.
 18. **Forensics Q1:** Correct answer saved in `C:\Users\Public\Desktop\Forensics\Q1.txt`.  **Correct Answer: Doofensmirtz**
 19. **Forensics Q2:** Correct answer saved in `C:\Users\Public\Desktop\Forensics\Q2.txt`.  **Correct Answer: inator.exe**
 20. **Forensics Q3:** Correct answer saved in `C:\Users\Public\Desktop\Forensics\Q3.txt`.  **Correct Answer: 203.0.113.85**
