@@ -1,12 +1,11 @@
-# 1. Define the Action with proper quote wrapping (' outside, " inside)
+# 1. Define the Action with proper quotes (' outside, " inside) and the Bypass flag
 $Action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument '-ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\Program Files\Engine\ScoringEngine.ps1"'
 
-# 2. Define the Trigger and System context
+# 2. Set it to trigger exactly when the OS boots
 $Trigger = New-ScheduledTaskTrigger -AtStartup
+
+# 3. Define the security context (SYSTEM account, highest privileges)
 $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-# 3. Register the clean task
+# 4. Register the task
 Register-ScheduledTask -TaskName "OWCAScoringEngine" -Action $Action -Trigger $Trigger -Principal $Principal -Force
-
-# 4. Start the engine
-Start-ScheduledTask -TaskName "OWCAScoringEngine"
