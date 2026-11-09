@@ -1,10 +1,10 @@
 # ==========================================
 # O.W.C.A. UNIFIED SCORING_ENGINE.ps1
 # ==========================================
+Import-Module WebAdministration
 $DesktopPath = "$env:PUBLIC\Desktop\ScoreReport.html"
 $MaxScore = 58
 
-# Helper function to keep the logic clean and match your blind-scoring output
 function Evaluate-Check {
     param([bool]$IsSecure, [string]$SuccessMsg)
     if ($IsSecure) {
@@ -25,9 +25,8 @@ while ($true) {
     $script:Html += "<script>var t=30; setInterval(function(){t--; document.getElementById('timer').innerText=t; if(t<=0){document.getElementById('timer').innerText='Refreshing...'; location.reload();}}, 1000);</script>"
     $script:Html += "<ul>"
 
-
     # ==========================================
-    # ORIGINAL 21 CHECKS (From Screenshot)
+    # ORIGINAL 21 CHECKS
     # ==========================================
     
     # Accounts
@@ -40,8 +39,8 @@ while ($true) {
     # Policies
     secedit /export /cfg C:\temp_secpol.cfg | Out-Null
     $Pol = Get-Content C:\temp_secpol.cfg -ErrorAction SilentlyContinue
-    Evaluate-Check ($Pol -match "PasswordComplexity = 1") "Password complexity enforced"
-    Evaluate-Check ($Pol -match "MinimumPasswordLength = 14") "Secure password length set"
+    Evaluate-Check ([bool]($Pol -match "PasswordComplexity = 1")) "Password complexity enforced"
+    Evaluate-Check ([bool]($Pol -match "MinimumPasswordLength = 14")) "Secure password length set"
     Evaluate-Check (-not ($Pol -match "LockoutBadCount = 0")) "Account lockout enabled"
     Remove-Item C:\temp_secpol.cfg -ErrorAction SilentlyContinue
 
@@ -61,10 +60,9 @@ while ($true) {
 
     # Forensics
     $FDir = "C:\Users\Public\Desktop\Forensics"
-    Evaluate-Check ((Get-Content "$FDir\Q1_Answer.txt" -ErrorAction SilentlyContinue) -match "Doofensmirtz") "Forensics Q1 Correct"
-    Evaluate-Check ((Get-Content "$FDir\Q2_Answer.txt" -ErrorAction SilentlyContinue) -match "inator.exe") "Forensics Q2 Correct"
-    Evaluate-Check ((Get-Content "$FDir\Q3_Answer.txt" -ErrorAction SilentlyContinue) -match "203.0.113.85") "Forensics Q3 Correct"
-
+    Evaluate-Check ([bool]((Get-Content "$FDir\Q1_Answer.txt" -ErrorAction SilentlyContinue) -match "Doofensmirtz")) "Forensics Q1 Correct"
+    Evaluate-Check ([bool]((Get-Content "$FDir\Q2_Answer.txt" -ErrorAction SilentlyContinue) -match "inator.exe")) "Forensics Q2 Correct"
+    Evaluate-Check ([bool]((Get-Content "$FDir\Q3_Answer.txt" -ErrorAction SilentlyContinue) -match "203.0.113.85")) "Forensics Q3 Correct"
 
     # ==========================================
     # 37 NEW ADVANCED CONFIGURATION CHECKS
@@ -84,7 +82,7 @@ while ($true) {
     Evaluate-Check ($ftpIso -ne "None") "FTP User Isolation Enforced"
 
     # --- UNNECESSARY SERVICES & APPS ---
-    $winrm = (Get-ItemPropertyValue "WSMan:\localhost\Service\AllowUnencrypted" -ErrorAction SilentlyContinue)
+    $winrm = Get-ItemPropertyValue -Path "WSMan:\localhost\Service" -Name "AllowUnencrypted" -ErrorAction SilentlyContinue
     Evaluate-Check ($winrm -ne "true") "WinRM Cleartext Disabled"
 
     Evaluate-Check (-not (Test-Path "C:\Program Files\TightVNC\tvnserver.exe")) "TightVNC Removed"
@@ -164,7 +162,6 @@ while ($true) {
 
     Evaluate-Check (-not (Test-Path "C:\Users\Public\Desktop\StickyNote_Passwords.txt")) "Plaintext Passwords Removed from Desktop"
 
-
     # ==========================================
     # SLA CHECKS
     # ==========================================
@@ -176,6 +173,6 @@ while ($true) {
     $script:Html += "</ul>"
     $script:Html += "<h3>Score: $script:Score / $MaxScore | Penalties: -$script:Penalties</h3></body></html>"
     
-    $script:Html | Out-File $DesktopPath -Force
+    $script:Html | Out-File $DesktopPath -Encoding utf8 -Force
     Start-Sleep -Seconds 30
 }
