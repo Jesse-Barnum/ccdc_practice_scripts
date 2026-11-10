@@ -1,9 +1,9 @@
 # ==========================================
-# O.W.C.A. UNIFIED SCORING_ENGINE.ps1
+# O.W.C.A. UNIFIED SCORING_ENGINE.ps1 (80 Points)
 # ==========================================
 Import-Module WebAdministration
 $DesktopPath = "$env:PUBLIC\Desktop\ScoreReport.html"
-$MaxScore = 58
+$MaxScore = 80
 
 function Evaluate-Check {
     param([bool]$IsSecure, [string]$SuccessMsg)
@@ -65,7 +65,7 @@ while ($true) {
     Evaluate-Check ([bool]((Get-Content "$FDir\Q3_Answer.txt" -ErrorAction SilentlyContinue) -match "203.0.113.85")) "Forensics Q3 Correct"
 
     # ==========================================
-    # 37 NEW ADVANCED CONFIGURATION CHECKS
+    # 37 ADVANCED CONFIGURATION CHECKS
     # ==========================================
 
     # --- IIS & FTP ---
@@ -161,6 +161,99 @@ while ($true) {
     Evaluate-Check ($ldap -ne 0) "Cleartext LDAP Authentication Blocked"
 
     Evaluate-Check (-not (Test-Path "C:\Users\Public\Desktop\StickyNote_Passwords.txt")) "Plaintext Passwords Removed from Desktop"
+
+
+    # ==========================================
+    # 22 NEW ADVANCED CHECKS (Added)
+    # ==========================================
+
+    # 1. AlwaysInstallElevated
+    $aieHKLM = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer" -Name "AlwaysInstallElevated" -ErrorAction SilentlyContinue
+    Evaluate-Check ($aieHKLM -eq 0 -or $null -eq $aieHKLM) "AlwaysInstallElevated (HKLM) Disabled"
+
+    # 2. Blank Passwords
+    $blankPw = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name "LimitBlankPasswordUse" -ErrorAction SilentlyContinue
+    Evaluate-Check ($blankPw -eq 1 -or $null -eq $blankPw) "Blank Password Network Logon Restricted"
+
+    # 3 & 4. UAC Prompting and Secure Desktop
+    $uacPrompt = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -ErrorAction SilentlyContinue
+    Evaluate-Check ($uacPrompt -ge 2 -or $null -eq $uacPrompt) "UAC Elevation Prompt Enforced"
+    
+    $uacSecure = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "PromptOnSecureDesktop" -ErrorAction SilentlyContinue
+    Evaluate-Check ($uacSecure -eq 1 -or $null -eq $uacSecure) "UAC Secure Desktop Enabled"
+
+    # 5. LM Hash
+    $lmHash = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "NoLMHash" -ErrorAction SilentlyContinue
+    Evaluate-Check ($lmHash -eq 1 -or $null -eq $lmHash) "LM Hash Generation Disabled"
+
+    # 6. SMBv1 Installed
+    $smb1State = (Get-WindowsFeature -Name FS-SMB1 -ErrorAction SilentlyContinue).InstallState
+    Evaluate-Check ($smb1State -ne "Installed") "Legacy SMBv1 File Sharing Removed"
+
+    # 7. LLMNR
+    $llmnr = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -ErrorAction SilentlyContinue
+    Evaluate-Check ($llmnr -eq 0 -or $null -eq $llmnr) "LLMNR Disabled"
+
+    # 8. NetBIOS
+    $netbios = (Get-WmiObject Win32_NetworkAdapterConfiguration -Filter "IPEnabled=True" -ErrorAction SilentlyContinue).tcpipNetbiosOptions
+    Evaluate-Check ([bool]($netbios -notcontains 1)) "NetBIOS over TCP/IP Disabled"
+
+    # 9. SMB Signing
+    $smbSign = Get-ItemPropertyValue -Path "HKLM:\System\CurrentControlSet\Services\LanManServer\Parameters" -Name "RequireSecuritySignature" -ErrorAction SilentlyContinue
+    Evaluate-Check ($smbSign -eq 1) "SMB Signing Enforced"
+
+    # 10. IPv6 Transition (Teredo/ISATAP)
+    $teredo = [string](netsh interface teredo show state)
+    $isatap = [string](netsh interface isatap show state)
+    Evaluate-Check ([bool]($teredo -match "disabled" -and $isatap -match "disabled")) "IPv6 Transition Technologies Disabled"
+
+    # 11. AutoPlay
+    $autoPlay = Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoDriveTypeAutoRun" -ErrorAction SilentlyContinue
+    Evaluate-Check ($autoPlay -eq 255 -or $autoPlay -eq 0xFF) "AutoPlay Globally Disabled"
+
+    # 12 & 13. Screen Saver
+    $ssSecure = Get-ItemPropertyValue -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaverIsSecure" -ErrorAction SilentlyContinue
+    Evaluate-Check ($ssSecure -eq 1) "Screen Saver Password Lock Enabled"
+    
+    $ssTime = Get-ItemPropertyValue -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveTimeOut" -ErrorAction SilentlyContinue
+    Evaluate-Check ([int]$ssTime -le 900 -and [int]$ssTime -gt 0) "Screen Saver Timeout Compliant"
+
+    # 14. Shutdown Without Logon
+    $shutLogon = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "shutdownwithoutlogon" -ErrorAction SilentlyContinue
+    Evaluate-Check ($shutLogon -eq 0) "Shutdown Without Logon Disabled"
+
+    # 15. Remote Registry
+    $remReg = Get-Service -Name RemoteRegistry -ErrorAction SilentlyContinue
+    Evaluate-Check ($remReg.Status -ne "Running") "Remote Registry Service Disabled"
+
+    # 16. Remote Assistance
+    $remAssist = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Remote Assistance" -Name "fAllowToGetHelp" -ErrorAction SilentlyContinue
+    Evaluate-Check ($remAssist -eq 0 -or $null -eq $remAssist) "Remote Assistance Disabled"
+
+    # 17. PowerShell v2 Engine
+    $psv2State = (Get-WindowsFeature -Name PowerShell-V2 -ErrorAction SilentlyContinue).InstallState
+    Evaluate-Check ($psv2State -ne "Installed") "PowerShell v2 Engine Removed"
+
+    # 18. IE Enhanced Security Configuration (ESC)
+    $ieAdmin = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -ErrorAction SilentlyContinue
+    Evaluate-Check ($ieAdmin -eq 1 -or $null -eq $ieAdmin) "IE Enhanced Security Configuration Enabled"
+
+    # 19. LSA Protection
+    $lsaPPL = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "RunAsPPL" -ErrorAction SilentlyContinue
+    Evaluate-Check ($lsaPPL -eq 1 -or $lsaPPL -eq 2) "LSA Protection Enabled"
+
+    # 20. Idle RDP Sessions
+    $rdpIdle = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" -Name "MaxIdleTime" -ErrorAction SilentlyContinue
+    Evaluate-Check ([int]$rdpIdle -gt 0) "Idle RDP Session Timeout Configured"
+
+    # 21. Defender C:\ Exclusion
+    $defEx = (Get-MpPreference -ErrorAction SilentlyContinue).ExclusionPath
+    Evaluate-Check ($null -eq $defEx -or $defEx -notcontains "C:\") "Defender C:\ Exclusion Removed"
+
+    # 22. Logon Logging (AuditPol)
+    $auditLogon = [string](auditpol /get /subcategory:"Logon")
+    Evaluate-Check ([bool]($auditLogon -match "Success")) "Security Event Auditing Restored"
+
 
     # ==========================================
     # SLA CHECKS
